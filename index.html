@@ -18,13 +18,19 @@
   --ui:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
 }
 *{box-sizing:border-box}
+*{scrollbar-width:thin;scrollbar-color:#2b3346 transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2b3346;border:3px solid transparent;background-clip:padding-box;border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:#3a445c;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-corner{background:transparent}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.5}
 button{font-family:var(--ui);cursor:pointer}
 input,button{font-size:14px}
 
 /* ===== LAYOUT ===== */
-.app{display:grid;grid-template-rows:auto 1fr;height:100vh;min-height:0}
+.app{display:grid;grid-template-rows:auto auto 1fr;height:100vh;min-height:0}
 .topbar{
   display:flex;align-items:center;gap:14px;padding:10px 16px;
   background:var(--panel);border-bottom:1px solid var(--line)
@@ -91,7 +97,18 @@ input,button{font-size:14px}
 .btnrow{display:flex;gap:8px}
 .btnrow .btn{width:auto;flex:1}
 
-.mini-canvas{width:100%;aspect-ratio:1;background:var(--canvas-bg);border:1px solid var(--line);border-radius:8px;display:block}
+.mini-canvas{width:100%;aspect-ratio:1;background:var(--canvas-bg);border:1px solid var(--line);border-radius:8px;display:block;cursor:pointer;touch-action:none}
+
+.cand-grid{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.cand{display:flex;gap:10px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.cand canvas{width:52px;height:52px;flex:none;background:var(--canvas-bg);border:1px solid var(--line);border-radius:6px}
+.cand .cinfo{flex:1;min-width:0}
+.cand .cinfo .cch{font-size:20px;line-height:1.1}
+.cand .cinfo .ctag{font-family:var(--mono);font-size:10px;color:var(--edit);letter-spacing:.04em}
+.cand .cbtns{display:flex;flex-direction:column;gap:5px}
+.cand .cbtns button{border:1px solid var(--line);background:var(--panel-2);color:var(--ink-dim);border-radius:6px;padding:4px 9px;font-size:11px}
+.cand .cbtns .rep{background:var(--edit);border-color:var(--edit);color:#06231f;font-weight:700}
+.cand .cbtns button:hover{filter:brightness(1.08)}
 
 .contours{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .contours .row{
@@ -114,6 +131,20 @@ input,button{font-size:14px}
 .edited-list .item .rm{color:var(--ink-faint);border:none;background:none;font-size:15px;padding:2px 6px}
 .edited-list .item .rm:hover{color:var(--danger)}
 .empty{font-size:12px;color:var(--ink-faint);text-align:center;padding:16px 8px;border:1px dashed var(--line);border-radius:8px}
+
+.bulk-input{width:100%;min-height:56px;resize:vertical;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:9px 11px;font-size:16px;line-height:1.5;font-family:var(--ui)}
+.bulk-input:focus{outline:none;border-color:var(--edit)}
+.list-legend{display:flex;gap:14px;margin:10px 0 6px;font-size:11px;color:var(--ink-faint)}
+.list-legend span{display:inline-flex;align-items:center;gap:5px}
+.list-legend i.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+i.dot.done{background:var(--edit)}
+i.dot.todo{background:var(--ink-faint)}
+.edited-list .item .badge{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:999px;border:1px solid;white-space:nowrap}
+.badge.done{color:var(--edit);border-color:var(--edit)}
+.badge.todo{color:var(--ink-faint);border-color:var(--line)}
+.edited-list .item.todo .ch{color:var(--ink-dim)}
+.dz-json b{color:var(--donor)}
+.dz-json.hot{border-color:var(--donor);background:var(--donor-soft);color:var(--ink)}
 
 .count-pill{font-family:var(--mono);font-size:11px;color:var(--edit);border:1px solid var(--edit);border-radius:999px;padding:2px 9px}
 
@@ -146,6 +177,20 @@ input,button{font-size:14px}
 a.link{color:var(--edit);text-decoration:none}
 a.link:hover{text-decoration:underline}
 .divider{height:1px;background:var(--line);margin:2px 0}
+
+/* ===== RIBBON ===== */
+.ribbon{display:flex;align-items:stretch;justify-content:center;gap:0;padding:6px 10px;background:var(--panel-2);border-bottom:1px solid var(--line);overflow-x:auto}
+.tgroup{display:flex;flex-direction:column;gap:4px;padding:0 12px;border-right:1px solid var(--line)}
+.tgroup:last-child{border-right:none}
+.tgroup .tlabel{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);padding-left:2px}
+.tgroup .trow{display:flex;gap:5px}
+.tbtn{display:flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:1px solid var(--line);background:var(--panel);color:var(--ink-dim);border-radius:7px;font-size:12.5px;white-space:nowrap;transition:.12s}
+.tbtn .ic{font-size:14px;line-height:1}
+.tbtn:hover{color:var(--ink);border-color:var(--edit)}
+.tbtn.on{color:var(--edit);border-color:var(--edit);background:var(--edit-soft)}
+.tbtn:disabled{opacity:.38;cursor:not-allowed;border-color:var(--line);color:var(--ink-faint)}
+.tbtn.icon-only{padding:0;width:34px;justify-content:center}
+@media (max-width:760px){ .tbtn .tx{display:none} .tbtn{padding:0;width:34px;justify-content:center} }
 </style>
 </head>
 <body>
@@ -165,6 +210,52 @@ a.link:hover{text-decoration:underline}
     <button class="btn ghost" id="helpBtn" style="width:auto">?</button>
   </header>
 
+  <!-- ===== RIBBON ===== -->
+  <div class="ribbon">
+    <div class="tgroup">
+      <span class="tlabel">履歴</span>
+      <div class="trow">
+        <button class="tbtn icon-only" id="btnUndo" title="元に戻す (Ctrl+Z)" disabled><span class="ic">↶</span></button>
+        <button class="tbtn icon-only" id="btnRedo" title="やり直し (Ctrl+Shift+Z)" disabled><span class="ic">↷</span></button>
+      </div>
+    </div>
+    <div class="tgroup">
+      <span class="tlabel">ツール</span>
+      <div class="trow">
+        <button class="tbtn on" id="toolSelect" title="選択・移動 (V)"><span class="ic">▚</span><span class="tx">選択</span></button>
+        <button class="tbtn" id="toolTransform" title="自由変形 (T)"><span class="ic">⤢</span><span class="tx">変形</span></button>
+        <button class="tbtn" id="toolRotate" title="回転 (R)"><span class="ic">⟳</span><span class="tx">回転</span></button>
+        <button class="tbtn" id="toolAddCorner" title="角点を追加 (A)"><span class="ic">◇</span><span class="tx">角点</span></button>
+        <button class="tbtn" id="toolAddCurve" title="曲線点を追加 (S)"><span class="ic">～</span><span class="tx">曲線点</span></button>
+        <button class="tbtn" id="toolPan" title="画面移動 (Space)"><span class="ic">✋</span><span class="tx">移動</span></button>
+      </div>
+    </div>
+    <div class="tgroup">
+      <span class="tlabel">点の編集</span>
+      <div class="trow">
+        <button class="tbtn" id="btnDelPts" title="選択した点を削除 (Delete)"><span class="ic">✕</span><span class="tx">点を削除</span></button>
+        <button class="tbtn" id="btnToggleCurve" title="直線↔曲線 (C)"><span class="ic">◠</span><span class="tx">直線/曲線</span></button>
+        <button class="tbtn" id="btnDup" title="選択を複製"><span class="ic">⧉</span><span class="tx">複製</span></button>
+        <button class="tbtn" id="btnFlipH" title="左右反転"><span class="ic">⇄</span><span class="tx">左右反転</span></button>
+        <button class="tbtn" id="btnFlipV" title="上下反転"><span class="ic">⇅</span><span class="tx">上下反転</span></button>
+      </div>
+    </div>
+    <div class="tgroup">
+      <span class="tlabel">切り抜き</span>
+      <div class="trow">
+        <button class="tbtn" id="btnCopy" title="選択した点をコピー (Ctrl+C)"><span class="ic">⎘</span><span class="tx">コピー</span></button>
+        <button class="tbtn" id="btnPaste" title="貼り付け (Ctrl+V)" disabled><span class="ic">⊞</span><span class="tx">貼付</span></button>
+      </div>
+    </div>
+    <div class="tgroup">
+      <span class="tlabel">表示</span>
+      <div class="trow">
+        <button class="tbtn icon-only" id="btnFit" title="全体表示 (F)"><span class="ic">⛶</span></button>
+        <button class="tbtn on" id="btnGuide" title="元字形ガイド"><span class="ic">▨</span></button>
+      </div>
+    </div>
+  </div>
+
   <div class="main">
 
     <!-- ===== LEFT : TARGET ===== -->
@@ -181,24 +272,20 @@ a.link:hover{text-decoration:underline}
 
         <div class="block">
           <h3>2. 対象の文字</h3>
-          <p class="hint">旧字体にしたい文字（先生が実際に入力する新字体）を1字。</p>
+          <p class="hint">旧字体にしたい漢字を入力（複数可）。開くと下の編集リストに未編集で並び、先頭の字が編集用に開きます。</p>
           <div class="charline" style="margin-top:9px">
-            <input id="targetInput" maxlength="2" placeholder="例：崎" autocomplete="off">
+            <input id="targetInput" placeholder="例：石川啄木" autocomplete="off">
             <button class="btn accent" id="targetLoad" style="width:auto;padding:9px 14px">開く</button>
           </div>
           <div id="targetBanner"></div>
         </div>
 
         <div class="block" id="editedBlock">
-          <h3>編集した文字（差し替えリスト）</h3>
-          <div class="edited-list" id="editedList"><div class="empty">まだありません</div></div>
-          <div class="divider" style="margin:12px 0"></div>
-          <div class="btnrow">
-            <button class="btn ghost" id="projSave">作業を保存</button>
-            <button class="btn ghost" id="projLoad">作業を読込</button>
-          </div>
-          <input type="file" id="projInput" accept=".json" hidden>
-          <p class="hint" style="margin-top:8px">作業は .json で保存。次回このファイルとフォントを読めば続きから編集できます。</p>
+          <h3>編集リスト</h3>
+          <button class="btn donor" id="bulkConvert">未編集を旧字体へ一括変換</button>
+          <div id="bulkBanner"></div>
+          <div class="list-legend"><span><i class="dot done"></i>編集済み</span><span><i class="dot todo"></i>未編集</span></div>
+          <div class="edited-list" id="editedList"><div class="empty">「対象の文字」で漢字を入力して開くと、ここに並びます</div></div>
         </div>
       </div>
     </aside>
@@ -207,20 +294,20 @@ a.link:hover{text-decoration:underline}
     <section class="stage">
       <canvas id="stage"></canvas>
       <div class="hud" id="hud"></div>
-      <div class="toolbar">
-        <button id="toolSelect" class="on" title="選択・移動 (V)">▲</button>
-        <button id="toolPan" title="画面移動 (Space)">✋</button>
-        <button id="btnFit" title="全体表示 (F)">⤢</button>
-        <button id="btnGuide" class="on" title="元字形ガイド表示">◇</button>
-      </div>
     </section>
 
     <!-- ===== RIGHT : DONOR ===== -->
     <aside class="col right">
       <div class="scroll">
+        <div class="block" id="candBlock" style="display:none">
+          <h3>旧字体・異体字の候補</h3>
+          <p class="hint">このフォントに収録されている、対象文字の旧字体/異体字です。「置換」で一発完了、「借用」で部品取りに使えます。</p>
+          <div class="cand-grid" id="candGrid"></div>
+        </div>
+
         <div class="block">
           <h3>3. 部品を借りる文字（ドナー）</h3>
-          <p class="hint">部品の供給元にする文字、または既存の旧字体を1字。</p>
+          <p class="hint">部品の供給元にする文字、または既存の旧字体を1字。表示された字は直接クリックで部品選択できます。</p>
           <div class="charline" style="margin-top:9px">
             <input id="donorInput" maxlength="2" placeholder="例：立" autocomplete="off">
             <button class="btn donor" id="donorLoad" style="width:auto;padding:9px 14px">表示</button>
@@ -242,6 +329,21 @@ a.link:hover{text-decoration:underline}
           <div id="exportBanner"></div>
           <p class="hint" style="margin-top:8px">編集した字だけを差し替え、他のグリフ・cmap・IVSは元のまま温存します（A方式）。</p>
         </div>
+
+        <div class="block">
+          <h3>作業ファイル</h3>
+          <div class="btnrow">
+            <button class="btn ghost" id="projSave">作業を保存</button>
+            <button class="btn ghost" id="projReuse">別フォントへ流用</button>
+          </div>
+          <div class="dropzone dz-json" id="jsonDrop" style="margin-top:8px">
+            <b>作業JSONをドラッグ＆ドロップ</b>
+            <small>またはクリックして読み込み。保存した .json で続きから編集できます</small>
+          </div>
+          <input type="file" id="projInput" accept=".json" hidden>
+          <input type="file" id="reuseInput" accept=".json" hidden>
+          <p class="hint" style="margin-top:8px">「別フォントへ流用」は別フォントを開いた状態で使うと、旧字体化を自動で再現します。</p>
+        </div>
       </div>
     </aside>
   </div>
@@ -253,19 +355,29 @@ a.link:hover{text-decoration:underline}
     <h2>使い方</h2>
     <p><b>①</b> TTFを開く → <b>②</b> 対象の文字（新字体）を開く → <b>③</b> ドナー文字を表示 → <b>④</b> 輪郭を選んでコピー、または丸ごと置換 → 位置を合わせる → <b>⑤</b> 書き出す。</p>
     <div class="divider"></div>
-    <p style="margin-top:12px"><b>中央キャンバス操作</b></p>
+    <p style="margin-top:12px"><b>アウトライン編集（点ベース）</b></p>
     <div class="keys">
-      <span><span class="kbd">クリック</span> 輪郭/点を選択</span>
-      <span><span class="kbd">ドラッグ</span> 移動</span>
-      <span><span class="kbd">← ↑ → ↓</span> 1単位移動</span>
-      <span><span class="kbd">Shift+矢印</span> 10単位</span>
-      <span><span class="kbd">Delete</span> 選択輪郭を削除</span>
-      <span><span class="kbd">Space+ドラッグ</span> 画面移動</span>
-      <span><span class="kbd">ホイール</span> 拡大縮小</span>
-      <span><span class="kbd">Esc</span> 選択解除</span>
+      <span><span class="kbd">クリック</span> 点/辺/内側を選択</span>
+      <span><span class="kbd">空きをドラッグ</span> 範囲選択</span>
+      <span><span class="kbd">Shift+クリック</span> 追加選択</span>
+      <span><span class="kbd">辺をドラッグ</span> 両端の点ごと移動</span>
+      <span><span class="kbd">Ctrl+A</span> 全点選択</span>
+      <span><span class="kbd">← ↑ → ↓</span> 選択点を移動（Shiftで10）</span>
+      <span><span class="kbd">Delete</span> 選択点を削除</span>
+      <span><span class="kbd">C</span> 選択点を 直線↔曲線</span>
+      <span><span class="kbd">Ctrl+C / Ctrl+V</span> 点をコピー／貼付（切り抜き）</span>
+      <span><span class="kbd">Ctrl+Z / Ctrl+Shift+Z</span> 戻す／やり直し</span>
     </div>
+    <p style="margin-top:10px"><b>道具</b> <span class="kbd">V</span>選択 <span class="kbd">T</span>自由変形 <span class="kbd">R</span>回転 <span class="kbd">A</span>角点追加 <span class="kbd">S</span>曲線点追加 <span class="kbd">Space</span>画面移動 <span class="kbd">[ ]</span>回転(Shiftで15°)</p>
     <div class="divider" style="margin-top:14px"></div>
-    <p style="margin-top:12px"><b>対応フォント</b>：TrueType輪郭（glyf）の .ttf。游明朝/游ゴシック/IPAex/Noto Sans JP(static) 等。CFF形式(.otf) は本ツール非対応です。</p>
+    <p style="margin-top:12px"><b>切り抜き（例：車の中の田だけ欲しい）</b>：範囲選択などで田を構成する点を選び <span class="kbd">Ctrl+C</span>。対象の文字を開いて <span class="kbd">Ctrl+V</span>。選んだ点は輪郭として閉じられ、切り出した形が貼り付きます。</p>
+    <p><b>自由変形</b>：Tで変形ツール。選択（なければ全体）に枠が出るので、角ハンドルで縦横同時、辺ハンドルで片方向、Shiftで等比拡大縮小。※太さも一緒に拡縮されます（線幅一定の変形はしません）。</p>
+    <p><b>作業履歴JSON</b> は画面のどこにでもドラッグ＆ドロップで読み込めます。</p>
+    <div class="divider" style="margin-top:14px"></div>
+    <p style="margin-top:12px"><b>旧字体候補</b>：対象文字に、フォント内の旧字体・異体字（別コード or IVS）があれば右上に表示。「置換」で一発、「借用」で部品取りに使えます。</p>
+    <p><b>別フォントへ流用</b>：作成後に「作業を保存」でjson化。別の明朝/ゴシックを開いて「別フォントへ履歴を流用」を押すと、旧字体化した文字を新フォント側の字形で自動的に作り直します（外見はコピーせず、操作＝レシピを再生）。手作業で点を動かした字は「要確認」として案内します。</p>
+    <div class="divider" style="margin-top:14px"></div>
+    <p style="margin-top:12px"><b>対応フォント</b>：TrueType輪郭（glyf）の .ttf。游明朝/游ゴシック/IPAex/Noto Sans JP(static) 等。CFF形式(.otf/Noto Sans CJK) は非対応。可変フォント(VF)は既定インスタンスにのみ適用（静的化推奨）。</p>
     <p><b>書き出し後は必ず</b> FontForge か Windows で開いて表示を確認してください（本ツールは書き出し直後に内部で自己検証も行います）。</p>
     <button class="btn" id="helpClose" style="margin-top:14px">閉じる</button>
   </div>
@@ -291,7 +403,10 @@ const USER_SETTINGS = {
     exportOkSelf:(name)=>`書き出し＆自己検証OK：${name}`,
     exportSelfFail:"自己検証に失敗しました。書き出しは行われません。編集内容を見直してください。",
     exportNoEdit:"編集した文字がありません。",
-    needFontFirst:"先にフォントを開いてください。"
+    needFontFirst:"先にフォントを開いてください。",
+    variableWarn:"可変フォント（VF）です。編集は既定インスタンスに適用されますが、可変軸の情報とは同期しません。可能なら静的インスタンス化した.ttfをベースにしてください。",
+    reuseDone:(a,b)=>`流用完了：${a} 字を自動作成${b?`、${b} 字は要手動確認`:""}。`,
+    reuseNeedOther:"別フォントへ流用するには、いま開いているのと違うフォントを先に開いてください。"
   },
   geom:{
     pointHitRadius:9, minZoom:0.05, maxZoom:6, zoomStep:1.12,
@@ -383,9 +498,10 @@ class TTFFont{
     const numTables=r.u16(); r.u16(); r.u16(); r.u16();
     for(let i=0;i<numTables;i++){ const tag=r.tag(); const chk=r.u32(); const off=r.u32(); const len=r.u32(); this.tables[tag]={tag,checksum:chk,offset:off,length:len}; }
     if(!this.tables["glyf"]||!this.tables["loca"]){
-      if(this.tables["CFF "]) throw {code:"CFF"};
+      if(this.tables["CFF "]||this.tables["CFF2"]) throw {code:"CFF"};
       throw {code:"NOGLYF"};
     }
+    this.isVariable=!!this.tables["gvar"]||!!this.tables["fvar"];
     this.sfntVersion=ver;
     this.glyfOffset=this.tables["glyf"].offset;
     this._parseHead(); this._parseMaxp(); this._parseHhea(); this._parseLoca(); this._parseCmap();
@@ -414,9 +530,32 @@ class TTFFont{
       if((fmt===4||fmt===12)&&score>bestScore){ bestScore=score; best={off:base+off,fmt}; }
     }
     this.cmapMap=new Map();
+    this.ivsMap=new Map();
+    for(let i=0;i<n;i++){
+      const off=this.dv.getUint32(base+8+i*8); const fmt=this.dv.getUint16(base+off);
+      if(fmt===14) this._readCmap14(base+off);
+    }
     if(!best) return;
     if(best.fmt===4) this._readCmap4(best.off); else this._readCmap12(best.off);
   }
+  _readCmap14(o){
+    const dv=this.dv; const numRec=dv.getUint32(o+6); let p=o+10;
+    for(let i=0;i<numRec;i++){
+      const vs=(dv.getUint8(p)<<16)|(dv.getUint8(p+1)<<8)|dv.getUint8(p+2);
+      const nonDefOff=dv.getUint32(p+7); p+=11;
+      if(nonDefOff===0) continue;
+      const tbl=o+nonDefOff; const numMap=dv.getUint32(tbl); let q=tbl+4;
+      for(let j=0;j<numMap;j++){
+        const uni=(dv.getUint8(q)<<16)|(dv.getUint8(q+1)<<8)|dv.getUint8(q+2);
+        const gid=dv.getUint16(q+3); q+=5;
+        if(!this.ivsMap.has(uni)) this.ivsMap.set(uni,[]);
+        this.ivsMap.get(uni).push({vs,gid});
+      }
+    }
+  }
+  variantsFor(cp){ return this.ivsMap.get(cp)||[]; }
+  oldFormCodepoint(cp){ const o=TTFFont.NEW_TO_OLD[cp]; if(o===undefined) return null; return this.cmapMap.has(o)?o:null; }
+  hasCodepoint(cp){ return this.cmapMap.has(cp); }
   _readCmap4(o){
     const dv=this.dv; const segX2=dv.getUint16(o+6); const segCount=segX2/2;
     const endO=o+14, startO=endO+segX2+2, deltaO=startO+segX2, rangeO=deltaO+segX2;
@@ -559,6 +698,7 @@ class TTFFont{
     for(let i=0;i<padded;i+=4){ const b0=i<u8.length?u8[i]:0,b1=i+1<u8.length?u8[i+1]:0,b2=i+2<u8.length?u8[i+2]:0,b3=i+3<u8.length?u8[i+3]:0; sum=(sum+(((b0<<24)|(b1<<16)|(b2<<8)|b3)>>>0))>>>0; } return sum>>>0; }
   _checksumBuffer(u8){ let sum=0; const n=u8.length; for(let i=0;i<n;i+=4){ const b0=u8[i]||0,b1=u8[i+1]||0,b2=u8[i+2]||0,b3=u8[i+3]||0; sum=(sum+(((b0<<24)|(b1<<16)|(b2<<8)|b3)>>>0))>>>0; } return sum>>>0; }
 }
+TTFFont.NEW_TO_OLD=(function(){ const s="国國学學体體気氣数數桜櫻医醫円圓声聲売賣広廣従從戦戰検檢権權残殘沢澤浜濱発發県縣真眞経經続續総總観觀読讀豊豐転轉軽輕鉄鐵関關険險雑雜静靜駅驛験驗髪髮黒黑歯齒竜龍仏佛会會伝傳価價剣劍労勞勧勸参參号號営營図圖団團圧壓変變実實対對専專将將属屬庁廳応應悪惡払拂拡擴断斷旧舊昼晝暦曆様樣歴歷毎每浅淺済濟温溫湾灣満滿灯燈点點焼燒状狀独獨獣獸礼禮禅禪称稱穂穗窃竊絵繪継繼縦縱繊纖聴聽胆膽脳腦臓臟舎舍芸藝荘莊薬藥虚虛虫蟲蛍螢装裝覧覽触觸訳譯証證譲讓辞辭郷鄉酔醉釈釋銭錢録錄隠隱霊靈頼賴顕顯騒騷駆驅麦麥黄黃齢齡廃廢弾彈径徑恵惠戸戶捜搜摂攝暁曉曽曾楼樓歓歡殻殼浄淨渇渴渋澀滝瀧炉爐犠犧猟獵畳疊秘祕穏穩縄繩缶罐翻飜茎莖蚕蠶覇霸誉譽謡謠践踐鋳鑄鎮鎭陥陷鶏鷄寿壽巻卷帯帶帰歸拝拜掲揭揺搖横橫楽樂蔵藏斎齋賛贊双雙壊壞壮壯囲圍桟棧湿濕"; const m={}; for(let i=0;i+1<s.length;i+=2){ m[s.charCodeAt(i)]=s.charCodeAt(i+1); } return m; })();
 
 /* =========================================================================
    GLYPH RENDER HELPERS
@@ -605,10 +745,10 @@ class Editor{
   constructor(canvas, hud, app){
     this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.hud=hud; this.app=app;
     this.contours=[]; this.origContours=[];
-    this.selContours=new Set(); this.selPoint=null;
+    this.selPoints=new Set();
     this.scale=0.3; this.tx=0; this.ty=0;
-    this.tool="select"; this.showGuide=true;
-    this.advance=0;
+    this.tool="select"; this.showGuide=true; this.advance=0;
+    this.mode="none"; this.marquee=null;
     this._bind();
   }
   _bind(){
@@ -630,10 +770,20 @@ class Editor{
   }
   setGlyph(contours, origContours, advance, upm){
     this.contours=contours; this.origContours=origContours||[]; this.advance=advance||upm; this.upm=upm;
-    this.selContours.clear(); this.selPoint=null;
-    this.fit(); this.draw();
+    this.selPoints.clear(); this.fit(); this.draw();
   }
-  clear(){ this.contours=[]; this.origContours=[]; this.selContours.clear(); this.selPoint=null; this.draw(); }
+  setContours(cs){ this.contours=cs; this.selPoints.clear(); this.draw(); this.app.syncPanels(); }
+  clear(){ this.contours=[]; this.origContours=[]; this.selPoints.clear(); this.draw(); }
+
+  // SELECTION
+  _key(ci,pi){ return ci+":"+pi; }
+  selectNone(){ this.selPoints.clear(); this.draw(); this.app.syncPanels(); }
+  deselect(){ this.selectNone(); }
+  selectAllPoints(){ this.selPoints.clear(); this.contours.forEach((c,ci)=>c.forEach((_,pi)=>this.selPoints.add(this._key(ci,pi)))); this.draw(); this.app.syncPanels(); }
+  selectContourIndices(list){ this.selPoints.clear(); for(const ci of list){ const c=this.contours[ci]; if(!c) continue; c.forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))); } this.draw(); this.app.syncPanels(); }
+  _selRefs(){ const out=[]; for(const k of this.selPoints){ const [ci,pi]=k.split(":").map(Number); if(this.contours[ci]&&this.contours[ci][pi]) out.push({ci,pi,p:this.contours[ci][pi]}); } return out; }
+  _workingRefs(){ const s=this._selRefs(); if(s.length) return s; const all=[]; this.contours.forEach((c,ci)=>c.forEach((p,pi)=>all.push({ci,pi,p}))); return all; }
+  hasSelection(){ return this.selPoints.size>0; }
 
   resize(){
     const r=this.canvas.getBoundingClientRect(); const dpr=window.devicePixelRatio||1;
@@ -644,15 +794,13 @@ class Editor{
     if(!this.upm) return;
     const r=this.canvas.getBoundingClientRect(); const m=USER_SETTINGS.geom.marginRatio;
     const box=this.upm; const s=Math.min(r.width,r.height)*(1-m*2)/box;
-    this.scale=s;
-    this.tx=(r.width - box*s)/2;
-    this.ty=r.height - (r.height - box*s)/2;
-    this.draw();
+    this.scale=s; this.tx=(r.width - box*s)/2; this.ty=r.height - (r.height - box*s)/2; this.draw();
   }
   toScreen(x,y){ return [ this.tx + x*this.scale, this.ty - y*this.scale ]; }
   toFont(px,py){ return [ (px-this.tx)/this.scale, (this.ty-py)/this.scale ]; }
   _localXY(e){ const r=this.canvas.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
 
+  // DRAW
   draw(){
     const ctx=this.ctx; if(!ctx) return;
     const dpr=this.dpr||1; ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -660,8 +808,10 @@ class Editor{
     ctx.clearRect(0,0,w,h);
     this._drawGrid(w,h);
     if(!this.upm){ this._hud(); return; }
-    if(this.showGuide && this.origContours.length) this._drawContours(this.origContours,{stroke:"rgba(154,166,189,.28)",fill:null,pts:false});
-    this._drawContours(this.contours,{stroke:"rgba(231,236,245,.9)",fill:"rgba(55,214,195,.10)",pts:true});
+    if(this.showGuide && this.origContours.length) this._drawOutline(this.origContours,"rgba(154,166,189,.26)",null,false);
+    this._drawOutline(this.contours,"rgba(231,236,245,.9)","rgba(55,214,195,.10)",true);
+    if(this.tool==="transform") this._drawTransformBox();
+    if(this.mode==="marquee"&&this.marquee) this._drawMarquee();
     this._hud();
   }
   _drawGrid(w,h){
@@ -679,109 +829,184 @@ class Editor{
     ctx.strokeStyle="rgba(58,68,92,.5)";
     ctx.beginPath(); ctx.moveTo(x0,0); ctx.lineTo(x0,h); ctx.stroke();
   }
-  _drawContours(contours, style){
+  _drawOutline(contours, stroke, fill, pts){
     const ctx=this.ctx; ctx.beginPath();
-    for(const c of contours){
-      const screen=c.map(p=>{ const [sx,sy]=this.toScreen(p.x,p.y); return {x:sx,y:sy,on:p.on}; });
-      GlyphRender.contourPath(ctx, screen);
-      ctx.closePath();
-    }
-    if(style.fill){ ctx.fillStyle=style.fill; ctx.fill("nonzero"); }
-    if(style.stroke){ ctx.lineWidth=1.4; ctx.strokeStyle=style.stroke; ctx.stroke(); }
-    if(style.pts){
+    for(const c of contours){ const scr=c.map(p=>{ const [sx,sy]=this.toScreen(p.x,p.y); return {x:sx,y:sy,on:p.on}; }); GlyphRender.contourPath(ctx,scr); ctx.closePath(); }
+    if(fill){ ctx.fillStyle=fill; ctx.fill("nonzero"); }
+    if(stroke){ ctx.lineWidth=1.4; ctx.strokeStyle=stroke; ctx.stroke(); }
+    if(pts){
       contours.forEach((c,ci)=>{
-        const selc=this.selContours.has(ci);
         c.forEach((p,pi)=>{
           const [sx,sy]=this.toScreen(p.x,p.y);
-          const isSel=this.selPoint&&this.selPoint.c===ci&&this.selPoint.p===pi;
-          const rad=USER_SETTINGS.geom.pointDrawRadius+(isSel?1.6:0);
+          const sel=this.selPoints.has(this._key(ci,pi));
+          const rad=USER_SETTINGS.geom.pointDrawRadius+(sel?1.4:0);
           ctx.beginPath();
           if(p.on){ ctx.rect(sx-rad,sy-rad,rad*2,rad*2); } else { ctx.arc(sx,sy,rad,0,Math.PI*2); }
-          ctx.fillStyle=isSel?"#fff":(selc?"#37d6c3":(p.on?"#9aa6bd":"rgba(242,182,87,.9)"));
+          ctx.fillStyle=sel?"#37d6c3":(p.on?"#9aa6bd":"rgba(242,182,87,.9)");
           ctx.fill();
+          if(sel){ ctx.lineWidth=1.2; ctx.strokeStyle="#0d1017"; ctx.stroke(); }
         });
       });
     }
+  }
+  _drawMarquee(){
+    const ctx=this.ctx; const [x0,y0,x1,y1]=this.marquee;
+    ctx.save(); ctx.setLineDash([5,4]); ctx.lineWidth=1; ctx.strokeStyle="#37d6c3";
+    ctx.fillStyle="rgba(55,214,195,.08)";
+    ctx.fillRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0));
+    ctx.strokeRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0));
+    ctx.restore();
+  }
+  _transformBox(){
+    const refs=this._workingRefs(); if(!refs.length) return null;
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const r of refs){ x0=Math.min(x0,r.p.x); y0=Math.min(y0,r.p.y); x1=Math.max(x1,r.p.x); y1=Math.max(y1,r.p.y); }
+    return {x0,y0,x1,y1,refs};
+  }
+  _handles(box){
+    const H=[[0,1],[.5,1],[1,1],[1,.5],[1,0],[.5,0],[0,0],[0,.5]];
+    return H.map(([nx,ny],idx)=>({idx,nx,ny,x:box.x0+nx*(box.x1-box.x0),y:box.y0+ny*(box.y1-box.y0)}));
+  }
+  _drawTransformBox(){
+    const box=this._transformBox(); if(!box) return;
+    const ctx=this.ctx;
+    const [sx0,sy0]=this.toScreen(box.x0,box.y1); const [sx1,sy1]=this.toScreen(box.x1,box.y0);
+    ctx.save(); ctx.setLineDash([4,3]); ctx.lineWidth=1; ctx.strokeStyle="rgba(242,182,87,.8)";
+    ctx.strokeRect(sx0,sy0,sx1-sx0,sy1-sy0); ctx.setLineDash([]);
+    for(const h of this._handles(box)){ const [hx,hy]=this.toScreen(h.x,h.y);
+      ctx.beginPath(); ctx.rect(hx-4,hy-4,8,8); ctx.fillStyle="#f2b657"; ctx.fill(); ctx.strokeStyle="#0d1017"; ctx.lineWidth=1; ctx.stroke(); }
+    ctx.restore();
   }
   _hud(){
     if(!this.app.font){ this.hud.innerHTML="フォントを読み込んでください"; return; }
     if(!this.upm){ this.hud.innerHTML="文字を開いてください"; return; }
     const ch=this.app.targetChar||"";
-    const n=this.contours.length;
-    this.hud.innerHTML=`対象 <b>${ch||"—"}</b> ／ 輪郭 ${n} ／ upm ${this.upm} ／ 送り幅 ${this.advance}<br>`+
-      (this.selContours.size?`輪郭を ${this.selContours.size} 個選択中`:"クリックで輪郭を選択");
+    const toolName={select:"選択",transform:"自由変形",addcorner:"角点を追加",addcurve:"曲線点を追加",rotate:"回転",pan:"画面移動"}[this.tool]||this.tool;
+    let l2;
+    if(this.tool==="transform") l2="ハンドルをドラッグで拡大縮小（角＝両方向・辺＝片方向、Shiftで等比）";
+    else if(this.tool==="addcorner") l2="線上をクリックで角点を追加";
+    else if(this.tool==="addcurve") l2="線上をクリックで曲線点を追加";
+    else if(this.tool==="rotate") l2="ドラッグで回転／ [ ] で1°・Shiftで15°";
+    else if(this.selPoints.size) l2=`点を ${this.selPoints.size} 個選択中／辺ドラッグ・複数移動・C で曲線化・Del で削除`;
+    else l2="点/辺/内側をクリック、または空きをドラッグで範囲選択";
+    this.hud.innerHTML=`対象 <b>${ch||"—"}</b> ／ 輪郭 ${this.contours.length} ／ 道具 <b>${toolName}</b><br>${l2}`;
   }
 
   onWheel(e){
     e.preventDefault(); if(!this.upm) return;
-    const [px,py]=this._localXY(e);
-    const [fx,fy]=this.toFont(px,py);
-    const dir=e.deltaY<0?1:-1;
-    const step=USER_SETTINGS.geom.zoomStep;
-    let ns=this.scale*(dir>0?step:1/step);
-    ns=Math.max(USER_SETTINGS.geom.minZoom,Math.min(USER_SETTINGS.geom.maxZoom,ns));
-    this.scale=ns;
-    const [nsx,nsy]=this.toScreen(fx,fy);
-    this.tx+=px-nsx; this.ty+=py-nsy;
-    this.draw();
+    const [px,py]=this._localXY(e); const [fx,fy]=this.toFont(px,py);
+    const step=USER_SETTINGS.geom.zoomStep; let ns=this.scale*(e.deltaY<0?step:1/step);
+    ns=Math.max(USER_SETTINGS.geom.minZoom,Math.min(USER_SETTINGS.geom.maxZoom,ns)); this.scale=ns;
+    const [nsx,nsy]=this.toScreen(fx,fy); this.tx+=px-nsx; this.ty+=py-nsy; this.draw();
   }
+
+  // POINTER
   onDown(e){
     if(!this.upm) return;
     this.canvas.setPointerCapture(e.pointerId);
-    const [px,py]=this._localXY(e);
-    this.dragStart=[px,py]; this.dragMoved=false;
+    const [px,py]=this._localXY(e); this.dragStart=[px,py]; this.dragMoved=false;
     if(this.tool==="pan"||this.app.spaceDown){ this.mode="pan"; this.panStart=[this.tx,this.ty]; return; }
-    const hitPt=this._hitPoint(px,py);
-    if(hitPt){ this.mode="point"; this.selPoint=hitPt; this.selContours.clear(); this.selContours.add(hitPt.c); this.draw(); this.app.syncPanels(); return; }
-    const hitC=this._hitContour(px,py);
-    if(hitC!==-1){
-      if(!e.shiftKey && !this.selContours.has(hitC)){ this.selContours.clear(); }
-      this.selContours.add(hitC); this.selPoint=null; this.mode="contour";
-      this._snapshot(); this.draw(); this.app.syncPanels(); return;
+    if(this.tool==="addcorner"){ this._insertPoint(px,py,true); this.mode="none"; return; }
+    if(this.tool==="addcurve"){ this._insertPoint(px,py,false); this.mode="none"; return; }
+    if(this.tool==="transform"){
+      const h=this._hitHandle(px,py);
+      if(h!==-1){ this._beginTransform(h); return; }
     }
-    this.selContours.clear(); this.selPoint=null; this.mode="none"; this.draw(); this.app.syncPanels();
+    if(this.tool==="rotate"){
+      if(!this.selPoints.size){ const ci=this._hitContourInside(px,py); if(ci!==-1) this.selectContourIndices([ci]); }
+      if(this.selPoints.size){ this._beginRotate(px,py); return; }
+      this.mode="none"; return;
+    }
+    const hp=this._hitPoint(px,py);
+    if(hp){
+      const k=this._key(hp.ci,hp.pi);
+      if(e.shiftKey){ if(this.selPoints.has(k)) this.selPoints.delete(k); else this.selPoints.add(k); this.draw(); this.app.syncPanels(); this.mode="none"; return; }
+      if(!this.selPoints.has(k)){ this.selPoints.clear(); this.selPoints.add(k); }
+      this._beginMove(); return;
+    }
+    const he=this._hitEdge(px,py);
+    if(he){
+      const n=this.contours[he.ci].length; const k1=this._key(he.ci,he.i), k2=this._key(he.ci,(he.i+1)%n);
+      if(!e.shiftKey) this.selPoints.clear(); this.selPoints.add(k1); this.selPoints.add(k2);
+      this._beginMove(); return;
+    }
+    const ci=this._hitContourInside(px,py);
+    if(ci!==-1){
+      if(!e.shiftKey) this.selPoints.clear();
+      this.contours[ci].forEach((_,pi)=>this.selPoints.add(this._key(ci,pi)));
+      this._beginMove(); return;
+    }
+    this._marqueeBase = e.shiftKey ? new Set(this.selPoints) : new Set();
+    if(!e.shiftKey) this.selPoints.clear();
+    this.mode="marquee"; this.marquee=[px,py,px,py]; this.draw(); this.app.syncPanels();
+  }
+  _beginMove(){ this.app.historyBegin(); this._snap=this._selRefs().map(r=>({ci:r.ci,pi:r.pi,x:r.p.x,y:r.p.y})); this.mode="move"; this.draw(); this.app.syncPanels(); }
+  _beginRotate(px,py){
+    this.app.historyBegin();
+    this._snap=this._selRefs().map(r=>({ci:r.ci,pi:r.pi,x:r.p.x,y:r.p.y}));
+    let sx=0,sy=0; for(const s of this._snap){ sx+=s.x; sy+=s.y; } this._center=[sx/this._snap.length, sy/this._snap.length];
+    const [fx,fy]=this.toFont(px,py); this._startAng=Math.atan2(fy-this._center[1],fx-this._center[0]); this.mode="rotate";
+  }
+  _beginTransform(idx){
+    const box=this._transformBox(); const hs=this._handles(box); const h=hs[idx];
+    const fixed=hs.find(o=>o.nx===(1-h.nx)&&o.ny===(1-h.ny));
+    this._tf={ nx:h.nx, ny:h.ny, hx:h.x, hy:h.y, fx:fixed.x, fy:fixed.y, snap: box.refs.map(r=>({ci:r.ci,pi:r.pi,x:r.p.x,y:r.p.y})) };
+    this.app.historyBegin(); this.mode="transform";
   }
   onMove(e){
-    if(this.mode===undefined||this.mode==="none") { this._cursor(e); return; }
-    const [px,py]=this._localXY(e);
-    const dx=px-this.dragStart[0], dy=py-this.dragStart[1];
+    if(this.mode==="none"||this.mode===undefined) return;
+    const [px,py]=this._localXY(e); const dx=px-this.dragStart[0], dy=py-this.dragStart[1];
     if(Math.abs(dx)+Math.abs(dy)>2) this.dragMoved=true;
     if(this.mode==="pan"){ this.tx=this.panStart[0]+dx; this.ty=this.panStart[1]+dy; this.draw(); return; }
     const fdx=dx/this.scale, fdy=-dy/this.scale;
-    if(this.mode==="point" && this.selPoint){
-      const base=this._snap?this._snap.point:null;
-      if(!this._snap){ this._snap={point:{...this.contours[this.selPoint.c][this.selPoint.p]}}; }
-      const p=this.contours[this.selPoint.c][this.selPoint.p];
-      p.x=this._snap.point.x+fdx; p.y=this._snap.point.y+fdy; this.draw();
-    } else if(this.mode==="contour"){
-      for(const ci of this.selContours){ const orig=this._snap.contours[ci]; const cur=this.contours[ci];
-        for(let i=0;i<cur.length;i++){ cur[i].x=orig[i].x+fdx; cur[i].y=orig[i].y+fdy; } }
-      this.draw();
+    if(this.mode==="move"){
+      for(const s of this._snap){ const p=this.contours[s.ci][s.pi]; p.x=s.x+fdx; p.y=s.y+fdy; } this.draw();
+    } else if(this.mode==="rotate"){
+      const [fx,fy]=this.toFont(px,py); const d=Math.atan2(fy-this._center[1],fx-this._center[0])-this._startAng;
+      const cs=Math.cos(d), sn=Math.sin(d); const [cx,cy]=this._center;
+      for(const s of this._snap){ const p=this.contours[s.ci][s.pi]; const ox=s.x-cx, oy=s.y-cy; p.x=cx+ox*cs-oy*sn; p.y=cy+ox*sn+oy*cs; } this.draw();
+    } else if(this.mode==="transform"){
+      const [fx,fy]=this.toFont(px,py); let sx=1, sy=1;
+      if(this._tf.nx!==0.5){ const dn=(this._tf.hx-this._tf.fx)||1e-6; sx=(fx-this._tf.fx)/dn; }
+      if(this._tf.ny!==0.5){ const dn=(this._tf.hy-this._tf.fy)||1e-6; sy=(fy-this._tf.fy)/dn; }
+      if(e.shiftKey && this._tf.nx!==0.5 && this._tf.ny!==0.5){ const m=(Math.abs(sx)+Math.abs(sy))/2; sx=(sx<0?-1:1)*m; sy=(sy<0?-1:1)*m; }
+      for(const s of this._tf.snap){ const p=this.contours[s.ci][s.pi]; p.x=this._tf.fx+(s.x-this._tf.fx)*sx; p.y=this._tf.fy+(s.y-this._tf.fy)*sy; } this.draw();
+    } else if(this.mode==="marquee"){
+      this.marquee[2]=px; this.marquee[3]=py; this._applyMarquee(); this.draw(); this.app.syncPanels();
     }
   }
   onUp(e){
-    if(this.mode==="contour"||this.mode==="point"){ this._commit(); }
-    this.mode="none"; this._snap=null;
+    if((this.mode==="move"||this.mode==="rotate"||this.mode==="transform") && this.dragMoved){ this._commitDrag(this.mode); }
+    this.mode="none"; this._snap=null; this._tf=null; this.marquee=null;
     if(this.canvas.hasPointerCapture&&this.canvas.hasPointerCapture(e.pointerId)) this.canvas.releasePointerCapture(e.pointerId);
+    this.draw();
   }
-  _cursor(e){}
-  _snapshot(){ this._snap={contours:this.contours.map(c=>c.map(p=>({...p})))}; }
-  _commit(){ this.roundLive(); this.app.commitTarget(); this.draw(); }
+  _applyMarquee(){
+    const [x0,y0,x1,y1]=this.marquee; const lo=[Math.min(x0,x1),Math.min(y0,y1)], hi=[Math.max(x0,x1),Math.max(y0,y1)];
+    this.selPoints=new Set(this._marqueeBase);
+    this.contours.forEach((c,ci)=>c.forEach((p,pi)=>{ const [sx,sy]=this.toScreen(p.x,p.y); if(sx>=lo[0]&&sx<=hi[0]&&sy>=lo[1]&&sy<=hi[1]) this.selPoints.add(this._key(ci,pi)); }));
+  }
+  _commitDrag(key){ this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd(key); this.draw(); }
   roundLive(){ for(const c of this.contours) for(const p of c){ p.x=Math.round(p.x); p.y=Math.round(p.y); } }
 
   _hitPoint(px,py){
     const R=USER_SETTINGS.geom.pointHitRadius;
-    for(let ci=0;ci<this.contours.length;ci++){ const c=this.contours[ci];
-      for(let pi=0;pi<c.length;pi++){ const [sx,sy]=this.toScreen(c[pi].x,c[pi].y);
-        if(Math.hypot(sx-px,sy-py)<=R) return {c:ci,p:pi}; } }
+    for(let ci=this.contours.length-1;ci>=0;ci--){ const c=this.contours[ci];
+      for(let pi=0;pi<c.length;pi++){ const [sx,sy]=this.toScreen(c[pi].x,c[pi].y); if(Math.hypot(sx-px,sy-py)<=R) return {ci,pi}; } }
     return null;
   }
-  _hitContour(px,py){
+  _hitEdge(px,py){
+    const R=8; let best=null,bestD=R;
+    for(let ci=0;ci<this.contours.length;ci++){ const c=this.contours[ci]; const n=c.length;
+      for(let i=0;i<n;i++){ const [ax,ay]=this.toScreen(c[i].x,c[i].y); const [bx,by]=this.toScreen(c[(i+1)%n].x,c[(i+1)%n].y);
+        const vx=bx-ax, vy=by-ay; const len2=vx*vx+vy*vy||1e-9; let t=((px-ax)*vx+(py-ay)*vy)/len2; t=Math.max(0,Math.min(1,t));
+        const qx=ax+vx*t, qy=ay+vy*t; const d=Math.hypot(qx-px,qy-py); if(d<bestD){ bestD=d; best={ci,i}; } } }
+    return best;
+  }
+  _hitContourInside(px,py){
     const [fx,fy]=this.toFont(px,py);
     for(let ci=this.contours.length-1;ci>=0;ci--){ if(this._inside(this.contours[ci],fx,fy)) return ci; }
-    let bestD=Infinity,best=-1;
-    for(let ci=0;ci<this.contours.length;ci++){ for(const p of this.contours[ci]){ const [sx,sy]=this.toScreen(p.x,p.y); const d=Math.hypot(sx-px,sy-py); if(d<bestD){bestD=d;best=ci;} } }
-    return bestD<14?best:-1;
+    return -1;
   }
   _inside(contour,x,y){
     let inside=false; const n=contour.length;
@@ -789,19 +1014,95 @@ class Editor{
       if(((a.y>y)!==(b.y>y)) && (x < (b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x)) inside=!inside; }
     return inside;
   }
-  nudge(dx,dy){
-    if(this.selPoint){ const p=this.contours[this.selPoint.c][this.selPoint.p]; p.x+=dx; p.y+=dy; }
-    else if(this.selContours.size){ for(const ci of this.selContours) for(const p of this.contours[ci]){ p.x+=dx; p.y+=dy; } }
-    else return;
-    this.roundLive(); this.app.commitTarget(); this.draw();
+  _hitHandle(px,py){ const box=this._transformBox(); if(!box) return -1; for(const h of this._handles(box)){ const [sx,sy]=this.toScreen(h.x,h.y); if(Math.hypot(sx-px,sy-py)<=8) return h.idx; } return -1; }
+
+  _insertPoint(px,py,on){
+    if(!this.contours.length) return;
+    const [fx,fy]=this.toFont(px,py);
+    let best=null,bestD=Infinity;
+    for(let ci=0;ci<this.contours.length;ci++){ const c=this.contours[ci]; const n=c.length;
+      for(let i=0;i<n;i++){ const a=c[i], b=c[(i+1)%n]; const vx=b.x-a.x, vy=b.y-a.y; const len2=vx*vx+vy*vy||1e-9;
+        let t=((fx-a.x)*vx+(fy-a.y)*vy)/len2; t=Math.max(0,Math.min(1,t)); const qx=a.x+vx*t, qy=a.y+vy*t; const d=Math.hypot(qx-fx,qy-fy);
+        if(d<bestD){ bestD=d; best={ci,i,x:Math.round(qx),y:Math.round(qy)}; } } }
+    if(!best) return;
+    this.app.historyBegin();
+    this.contours[best.ci].splice(best.i+1,0,{x:best.x,y:best.y,on});
+    this.selPoints=new Set([this._key(best.ci,best.i+1)]);
+    this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("anchor"); this.draw(); this.app.syncPanels();
   }
+  toggleCurvePoint(){ const refs=this._selRefs(); if(!refs.length) return; this.app.historyBegin(); for(const r of refs) r.p.on=!r.p.on; this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("curve"); this.draw(); }
+  nudge(dx,dy){ const refs=this._selRefs(); if(!refs.length) return; this.app.historyBegin(); for(const r of refs){ r.p.x+=dx; r.p.y+=dy; } this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("nudge"); this.draw(); }
   deleteSelected(){
-    if(this.selContours.size){
-      const keep=[]; for(let i=0;i<this.contours.length;i++) if(!this.selContours.has(i)) keep.push(this.contours[i]);
-      this.contours=keep; this.selContours.clear(); this.selPoint=null; this.app.commitTarget(); this.draw();
-    }
+    const refs=this._selRefs(); if(!refs.length) return;
+    this.app.historyBegin();
+    const byC=new Map(); for(const r of refs){ if(!byC.has(r.ci)) byC.set(r.ci,new Set()); byC.get(r.ci).add(r.pi); }
+    const out=[]; this.contours.forEach((c,ci)=>{ const del=byC.get(ci); if(!del){ out.push(c); return; } const kept=c.filter((_,pi)=>!del.has(pi)); if(kept.length>=2) out.push(kept); });
+    this.contours=out; this.selPoints.clear();
+    this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("delPoints"); this.draw(); this.app.syncPanels();
   }
-  deselect(){ this.selContours.clear(); this.selPoint=null; this.draw(); this.app.syncPanels(); }
+  duplicate(){
+    const cis=new Set(this._selRefs().map(r=>r.ci)); const src=cis.size?[...cis]:this.contours.map((_,i)=>i);
+    if(!src.length) return; this.app.historyBegin();
+    const off=Math.round(this.upm*0.05); const start=this.contours.length; const add=[];
+    for(const ci of src) add.push(this.contours[ci].map(p=>({x:p.x+off,y:p.y-off,on:p.on})));
+    this.contours=this.contours.concat(add);
+    this.selPoints.clear(); for(let i=0;i<add.length;i++){ const ci=start+i; this.contours[ci].forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))); }
+    this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("dup"); this.draw(); this.app.syncPanels();
+  }
+  flip(horizontal){
+    const refs=this._workingRefs(); if(!refs.length) return;
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; for(const r of refs){ x0=Math.min(x0,r.p.x); y0=Math.min(y0,r.p.y); x1=Math.max(x1,r.p.x); y1=Math.max(y1,r.p.y); }
+    this.app.historyBegin();
+    for(const r of refs){ if(horizontal) r.p.x=x0+x1-r.p.x; else r.p.y=y0+y1-r.p.y; }
+    const cnt=new Map(); for(const r of refs){ cnt.set(r.ci,(cnt.get(r.ci)||0)+1); }
+    for(const [ci,c] of cnt){ if(c===this.contours[ci].length) this.contours[ci].reverse(); }
+    this.selPoints=new Set(); this.contours.forEach((c,ci)=>c.forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))));
+    this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("flip"); this.draw();
+  }
+  rotateBy(deg){
+    const refs=this._workingRefs(); if(!refs.length) return;
+    let sx=0,sy=0; for(const r of refs){ sx+=r.p.x; sy+=r.p.y; } const cx=sx/refs.length, cy=sy/refs.length;
+    const d=deg*Math.PI/180, cs=Math.cos(d), sn=Math.sin(d);
+    this.app.historyBegin();
+    for(const r of refs){ const ox=r.p.x-cx, oy=r.p.y-cy; r.p.x=cx+ox*cs-oy*sn; r.p.y=cy+ox*sn+oy*cs; }
+    this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("rotate"); this.draw();
+  }
+  getSelectedAsContours(){
+    const byC=new Map(); for(const r of this._selRefs()){ if(!byC.has(r.ci)) byC.set(r.ci,[]); byC.get(r.ci).push(r.pi); }
+    const out=[]; for(const [ci,pis] of byC){ pis.sort((a,b)=>a-b); if(pis.length>=2) out.push(pis.map(pi=>({x:this.contours[ci][pi].x,y:this.contours[ci][pi].y,on:this.contours[ci][pi].on}))); }
+    return out;
+  }
+  pasteContours(cs){
+    if(!cs||!cs.length) return; this.app.historyBegin();
+    const start=this.contours.length; this.contours=this.contours.concat(cs.map(c=>c.map(p=>({x:p.x,y:p.y,on:p.on}))));
+    this.selPoints.clear(); for(let i=0;i<cs.length;i++){ const ci=start+i; this.contours[ci].forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))); }
+    this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("paste"); this.draw(); this.app.syncPanels();
+  }
+}
+
+/* =========================================================================
+   HISTORY
+========================================================================= */
+class History{
+  constructor(app){ this.app=app; this.undo=[]; this.redo=[]; this.limit=120; }
+  reset(){ this.undo=[]; this.redo=[]; this.app.updateUndoButtons(); }
+  record(gid, before, after, key){
+    if(JSON.stringify(before)===JSON.stringify(after)) return;
+    const last=this.undo[this.undo.length-1];
+    if(key==="nudge" && last && last.key==="nudge" && last.gid===gid){ last.after=after; }
+    else { this.undo.push({gid,before,after,key}); if(this.undo.length>this.limit) this.undo.shift(); }
+    this.redo.length=0; this.app.updateUndoButtons();
+  }
+  recordBatch(list, key){
+    const items=list.filter(e=>JSON.stringify(e.before)!==JSON.stringify(e.after));
+    if(!items.length) return;
+    this.undo.push({batch:items,key}); if(this.undo.length>this.limit) this.undo.shift();
+    this.redo.length=0; this.app.updateUndoButtons();
+  }
+  canUndo(){ return this.undo.length>0; }
+  canRedo(){ return this.redo.length>0; }
+  doUndo(){ const e=this.undo.pop(); if(!e) return; if(e.batch){ this.app.restoreBatch(e.batch,"before"); } else { this.app.restoreGlyph(e.gid,e.before); } this.redo.push(e); this.app.updateUndoButtons(); }
+  doRedo(){ const e=this.redo.pop(); if(!e) return; if(e.batch){ this.app.restoreBatch(e.batch,"after"); } else { this.app.restoreGlyph(e.gid,e.after); } this.undo.push(e); this.app.updateUndoButtons(); }
 }
 
 /* =========================================================================
@@ -812,11 +1113,16 @@ class App{
     this.font=null; this.targetChar=""; this.targetGid=-1;
     this.donorChar=""; this.donorGid=-1; this.donorContours=[]; this.donorSel=new Set();
     this.spaceDown=false;
+    this.recipes=new Map();
+    this.clipboard=null;
+    this.worklist=[];
+    this.history=new History(this);
     this.$=(id)=>document.getElementById(id);
     this.editor=new Editor(this.$("stage"), this.$("hud"), this);
     this._bind();
     this.editor.resize();
     this.refreshEdited();
+    this.updateUndoButtons();
   }
   _bind(){
     this.$("loadBtn").onclick=()=>this.$("fileInput").click();
@@ -831,13 +1137,30 @@ class App{
     this.$("exportBtn").onclick=()=>this.doExport();
     this.$("btnFit").onclick=()=>this.editor.fit();
     this.$("toolSelect").onclick=()=>this.setTool("select");
+    this.$("toolTransform").onclick=()=>this.setTool("transform");
+    this.$("toolRotate").onclick=()=>this.setTool("rotate");
+    this.$("toolAddCorner").onclick=()=>this.setTool("addcorner");
+    this.$("toolAddCurve").onclick=()=>this.setTool("addcurve");
     this.$("toolPan").onclick=()=>this.setTool("pan");
     this.$("btnGuide").onclick=()=>this.toggleGuide();
+    this.$("btnUndo").onclick=()=>this.history.doUndo();
+    this.$("btnRedo").onclick=()=>this.history.doRedo();
+    this.$("btnDelPts").onclick=()=>this.editor.deleteSelected();
+    this.$("btnToggleCurve").onclick=()=>this.editor.toggleCurvePoint();
+    this.$("btnDup").onclick=()=>this.editor.duplicate();
+    this.$("btnFlipH").onclick=()=>this.editor.flip(true);
+    this.$("btnFlipV").onclick=()=>this.editor.flip(false);
+    this.$("btnCopy").onclick=()=>this.copySelection();
+    this.$("btnPaste").onclick=()=>this.paste();
     this.$("helpBtn").onclick=()=>this.$("helpOverlay").classList.add("show");
     this.$("helpClose").onclick=()=>this.$("helpOverlay").classList.remove("show");
     this.$("projSave").onclick=()=>this.saveProject();
-    this.$("projLoad").onclick=()=>this.$("projInput").click();
     this.$("projInput").onchange=(e)=>{ if(e.target.files[0]) this.loadProject(e.target.files[0]); };
+    this.$("projReuse").onclick=()=>this.$("reuseInput").click();
+    this.$("reuseInput").onchange=(e)=>{ if(e.target.files[0]) this.reuseProject(e.target.files[0]); };
+    this.$("bulkConvert").onclick=()=>this.bulkConvert();
+    this._jsonDnd();
+    this.$("donorCanvas").addEventListener("pointerdown",(e)=>this.onDonorClick(e));
     window.addEventListener("keydown",e=>this.onKey(e,true));
     window.addEventListener("keyup",e=>this.onKey(e,false));
   }
@@ -845,13 +1168,84 @@ class App{
     const dz=this.$("dropzone");
     ["dragenter","dragover"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.add("hot");}));
     ["dragleave","drop"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove("hot");}));
-    dz.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f) this.loadFont(f); });
+    dz.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f) this.routeDroppedFile(f); });
     dz.addEventListener("click",()=>this.$("fileInput").click());
+    window.addEventListener("dragover",e=>{ e.preventDefault(); });
+    window.addEventListener("drop",e=>{ e.preventDefault(); if(e.target.closest&&e.target.closest("#dropzone")) return; const f=e.dataTransfer&&e.dataTransfer.files[0]; if(f) this.routeDroppedFile(f); });
+  }
+  routeDroppedFile(f){
+    const name=(f.name||"").toLowerCase();
+    if(name.endsWith(".json")) this.loadProject(f);
+    else this.loadFont(f);
+  }
+  _jsonDnd(){
+    const dz=this.$("jsonDrop");
+    ["dragenter","dragover"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();dz.classList.add("hot");}));
+    ["dragleave","drop"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove("hot");}));
+    dz.addEventListener("drop",e=>{ e.stopPropagation(); const f=e.dataTransfer.files[0]; if(f) this.loadProject(f); });
+    dz.addEventListener("click",()=>this.$("projInput").click());
+  }
+
+  // WORKLIST
+  addToWorklist(cp){ if(!this.worklist.includes(cp)) this.worklist.push(cp); }
+  bulkConvert(){
+    if(!this.font){ this.banner("bulkBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    const targets=this.worklist.filter(cp=>{ const g=this.font.cmapMap.get(cp); return g!=null && !this.font.editedGlyphs.has(g); });
+    if(!targets.length){ this.banner("bulkBanner","warn","未編集の対象がありません。"); return; }
+    const batch=[]; let done=0; const noCand=[];
+    for(const cp of targets){
+      const gid=this.font.cmapMap.get(cp);
+      const cand=this._firstCandidate(cp);
+      if(!cand){ noCand.push(String.fromCodePoint(cp)); continue; }
+      const before=this.snapshotGlyph(gid);
+      this.font.setEdited(gid, this.font._rawContours(cand.gid,0));
+      this.recipes.set(gid, cand.recipe);
+      const after=this.snapshotGlyph(gid);
+      batch.push({gid,before,after}); done++;
+    }
+    if(batch.length) this.history.recordBatch(batch,"bulkConvert");
+    if(this.targetGid>=0) this.openTarget();
+    this.refreshEdited();
+    let msg=`${done} 字を旧字体・異体字へ変換しました。`;
+    if(noCand.length) msg+=` 候補なし(手動): ${noCand.join("")}`;
+    this.banner("bulkBanner", done?"ok":"warn", msg);
+  }
+  _firstCandidate(cp){
+    const oldCP=this.font.oldFormCodepoint(cp);
+    if(oldCP){ const g=this.font.cmapMap.get(oldCP); if(g!=null) return {gid:g, recipe:{op:"variant-oldcp", oldCP}}; }
+    const vs=this.font.variantsFor(cp);
+    if(vs.length) return {gid:vs[0].gid, recipe:{op:"variant-ivs", vs:vs[0].vs}};
+    return null;
+  }
+
+  onDonorClick(e){
+    if(!this.donorContours.length || !this.donorView) return;
+    const cv=this.$("donorCanvas"); const r=cv.getBoundingClientRect();
+    const px=e.clientX-r.left, py=e.clientY-r.top;
+    const v=this.donorView; const fx=(px-v.tx)/v.s, fy=(v.ty-py)/v.s;
+    let hit=-1;
+    for(let ci=this.donorContours.length-1;ci>=0;ci--){ if(this._pointInContour(this.donorContours[ci],fx,fy)){ hit=ci; break; } }
+    if(hit===-1) return;
+    if(this.donorSel.has(hit)) this.donorSel.delete(hit); else this.donorSel.add(hit);
+    this.drawDonor(); this.renderDonorContours();
+    this.$("copyParts").disabled=this.donorSel.size===0 || this.targetGid<0;
+  }
+  _pointInContour(contour,x,y){
+    let inside=false; const n=contour.length;
+    for(let i=0,j=n-1;i<n;j=i++){ const a=contour[i],b=contour[j];
+      if(((a.y>y)!==(b.y>y)) && (x < (b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x)) inside=!inside; }
+    return inside;
   }
   onKey(e,down){
     if(e.target.tagName==="INPUT") return;
     if(e.key===" "){ this.spaceDown=down; if(down) e.preventDefault(); return; }
     if(!down) return;
+    const mod=e.ctrlKey||e.metaKey;
+    if(mod && (e.key==="z"||e.key==="Z")){ if(e.shiftKey) this.history.doRedo(); else this.history.doUndo(); e.preventDefault(); return; }
+    if(mod && (e.key==="y"||e.key==="Y")){ this.history.doRedo(); e.preventDefault(); return; }
+    if(mod && (e.key==="a"||e.key==="A")){ this.editor.selectAllPoints(); e.preventDefault(); return; }
+    if(mod && (e.key==="c"||e.key==="C")){ this.copySelection(); e.preventDefault(); return; }
+    if(mod && (e.key==="v"||e.key==="V")){ this.paste(); e.preventDefault(); return; }
     const g=USER_SETTINGS.geom; const fast=e.shiftKey?g.arrowNudgeFast:g.arrowNudge;
     if(e.key==="ArrowLeft"){ this.editor.nudge(-fast,0); e.preventDefault(); }
     else if(e.key==="ArrowRight"){ this.editor.nudge(fast,0); e.preventDefault(); }
@@ -861,8 +1255,56 @@ class App{
     else if(e.key==="Escape"){ this.editor.deselect(); }
     else if(e.key==="f"||e.key==="F"){ this.editor.fit(); }
     else if(e.key==="v"||e.key==="V"){ this.setTool("select"); }
+    else if(e.key==="t"||e.key==="T"){ this.setTool("transform"); }
+    else if(e.key==="r"||e.key==="R"){ this.setTool("rotate"); }
+    else if(e.key==="a"||e.key==="A"){ this.setTool("addcorner"); }
+    else if(e.key==="s"||e.key==="S"){ this.setTool("addcurve"); }
+    else if(e.key==="c"||e.key==="C"){ this.editor.toggleCurvePoint(); }
+    else if(e.key==="["){ this.editor.rotateBy(e.shiftKey?15:1); }
+    else if(e.key==="]"){ this.editor.rotateBy(e.shiftKey?-15:-1); }
   }
-  setTool(t){ this.editor.tool=t; this.$("toolSelect").classList.toggle("on",t==="select"); this.$("toolPan").classList.toggle("on",t==="pan"); }
+  setTool(t){
+    this.editor.tool=t;
+    if(t==="transform" && !this.editor.hasSelection() && this.editor.contours.length) this.editor.selectAllPoints();
+    for(const [id,name] of [["toolSelect","select"],["toolTransform","transform"],["toolRotate","rotate"],["toolAddCorner","addcorner"],["toolAddCurve","addcurve"],["toolPan","pan"]])
+      this.$(id).classList.toggle("on",t===name);
+    this.editor.draw();
+  }
+  copySelection(){
+    const cs=this.editor.getSelectedAsContours();
+    if(cs.length){ this.clipboard=cs; this.syncPanels(); }
+  }
+  paste(){ if(this.clipboard&&this.clipboard.length) this.editor.pasteContours(this.clipboard); }
+  updateUndoButtons(){ this.$("btnUndo").disabled=!this.history.canUndo(); this.$("btnRedo").disabled=!this.history.canRedo(); }
+  historyBegin(){ this._histBefore=this.snapshotGlyph(this.targetGid); }
+  historyEnd(key){ if(this.targetGid<0) return; const after=this.snapshotGlyph(this.targetGid); this.history.record(this.targetGid,this._histBefore,after,key); }
+  markManual(){ const gid=this.targetGid; if(gid<0) return; const r=this.recipes.get(gid); if(r&&r.op!=="manual"){ r.manual=true; } else if(!r){ this.recipes.set(gid,{op:"manual"}); } }
+  setRecipe(gid,r){ this.recipes.set(gid,r); }
+  snapshotGlyph(gid){
+    if(gid<0||!this.font) return {contours:null,recipe:null};
+    const cs=this.font.editedGlyphs.has(gid)?this.font._clone(this.font.editedGlyphs.get(gid)):null;
+    const r=this.recipes.get(gid);
+    return {contours:cs, recipe:r?JSON.parse(JSON.stringify(r)):null};
+  }
+  _applyGlyphState(gid,snap){
+    if(!snap||snap.contours===null){ this.font.clearEdited(gid); this.recipes.delete(gid); }
+    else { this.font.editedGlyphs.set(gid,snap.contours.map(c=>c.map(p=>({...p})))); if(snap.recipe) this.recipes.set(gid,snap.recipe); else this.recipes.delete(gid); }
+  }
+  _reloadTargetFromFont(gid){
+    const cp=this._cpForGid(gid);
+    if(gid!==this.targetGid && cp!=null){ this.targetChar=String.fromCodePoint(cp); this.targetGid=gid; this.$("targetInput").value=this.targetChar; this.updateCandidates(); }
+    if(gid===this.targetGid){
+      const cs=this.font.glyphContours(gid); const orig=this.font._rawContours(gid,0);
+      this.editor.setGlyph(cs,orig,this.font.advanceWidth(gid),this.font.unitsPerEm);
+    }
+  }
+  restoreGlyph(gid,snap){ this._applyGlyphState(gid,snap); this._reloadTargetFromFont(gid); this.refreshEdited(); }
+  restoreBatch(items, which){
+    for(const it of items){ this._applyGlyphState(it.gid, it[which]); }
+    if(this.targetGid>=0){ const cs=this.font.glyphContours(this.targetGid); const orig=this.font._rawContours(this.targetGid,0); this.editor.setGlyph(cs,orig,this.font.advanceWidth(this.targetGid),this.font.unitsPerEm); this.updateCandidates(); }
+    this.refreshEdited();
+  }
+  _cpForGid(gid){ for(const [cp,g] of this.font.cmapMap){ if(g===gid) return cp; } return null; }
   toggleGuide(){ this.editor.showGuide=!this.editor.showGuide; this.$("btnGuide").classList.toggle("on",this.editor.showGuide); this.editor.draw(); }
 
   banner(id,type,msg){ const el=this.$(id); if(!msg){ el.innerHTML=""; return; } el.innerHTML=`<div class="banner ${type}" style="margin-top:10px">${msg}</div>`; }
@@ -872,11 +1314,14 @@ class App{
       const buf=await file.arrayBuffer();
       this.font=new TTFFont(buf);
       this.fontName=file.name;
+      this.recipes=new Map(); this.history.reset(); this.worklist=[];
       this.$("fileState").textContent=file.name;
-      this.banner("fontBanner","ok",USER_SETTINGS.strings.fontOk(file.name,this.font.numGlyphs));
+      let msg=`<div class="banner ok" style="margin-top:10px">${USER_SETTINGS.strings.fontOk(file.name,this.font.numGlyphs)}</div>`;
+      if(this.font.isVariable) msg+=`<div class="banner warn" style="margin-top:8px">${USER_SETTINGS.strings.variableWarn}</div>`;
+      this.$("fontBanner").innerHTML=msg;
       this.$("exportBtn").disabled=false;
       this.editor.clear();
-      if(this.targetChar) this.openTarget();
+      if(this.targetChar) this.openTarget(); else this.updateCandidates();
     }catch(err){
       this.font=null; this.$("exportBtn").disabled=true;
       const S=USER_SETTINGS.strings;
@@ -887,16 +1332,73 @@ class App{
   openTarget(){
     if(!this.font){ this.banner("targetBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
     const raw=this.$("targetInput").value; if(!raw) return;
-    const ch=[...raw][0];
-    const gid=this.font.glyphIdForChar(ch);
-    if(gid===0){ this.banner("targetBanner","err",USER_SETTINGS.strings.charMissing(ch)); return; }
-    this.targetChar=ch; this.targetGid=gid;
-    const uni="U+"+ch.codePointAt(0).toString(16).toUpperCase().padStart(4,"0");
-    this.banner("targetBanner","ok",USER_SETTINGS.strings.charOk(ch,gid,uni));
-    const contours=this.font.glyphContours(gid);
-    const orig=this.font._rawContours(gid,0);
+    const cps=[]; const seen=new Set(); const missing=[];
+    for(const c of [...raw]){ const cp=c.codePointAt(0); if(cp<0x3400) continue; if(seen.has(cp)) continue; seen.add(cp); if(this.font.cmapMap.has(cp)) cps.push(cp); else missing.push(c); }
+    if(!cps.length){ this.banner("targetBanner","err", missing.length?`未収録: ${missing.join("")}`:USER_SETTINGS.strings.charMissing(raw)); return; }
+    for(const cp of cps) this.addToWorklist(cp);
+    const cp0=cps[0]; const ch0=String.fromCodePoint(cp0); const gid=this.font.cmapMap.get(cp0);
+    this.targetChar=ch0; this.targetGid=gid;
+    const uni="U+"+cp0.toString(16).toUpperCase().padStart(4,"0");
+    let msg=USER_SETTINGS.strings.charOk(ch0,gid,uni);
+    if(cps.length>1) msg+=` ／ ${cps.length}字をリストに追加`;
+    if(missing.length) msg+=` ／ 未収録:${missing.join("")}`;
+    this.banner("targetBanner","ok",msg);
+    const contours=this.font.glyphContours(gid); const orig=this.font._rawContours(gid,0);
     this.editor.setGlyph(contours, orig, this.font.advanceWidth(gid), this.font.unitsPerEm);
-    this.syncPanels();
+    this.setTool("select"); this.updateCandidates(); this.refreshEdited(); this.syncPanels();
+  }
+  updateCandidates(){
+    const grid=this.$("candGrid"); const block=this.$("candBlock");
+    grid.innerHTML="";
+    if(!this.font || this.targetGid<0){ block.style.display="none"; return; }
+    const cp=this.targetChar.codePointAt(0);
+    const list=[];
+    const oldCP=this.font.oldFormCodepoint(cp);
+    if(oldCP){ const g=this.font.cmapMap.get(oldCP); list.push({gid:g, ch:String.fromCodePoint(oldCP), tag:"旧字体 U+"+oldCP.toString(16).toUpperCase(), recipe:{op:"variant-oldcp", oldCP}}); }
+    for(const v of this.font.variantsFor(cp)){ list.push({gid:v.gid, ch:this.targetChar, tag:"異体字 "+this._vsLabel(v.vs), recipe:{op:"variant-ivs", vs:v.vs}}); }
+    if(!list.length){ block.style.display="none"; return; }
+    block.style.display="";
+    for(const c of list){
+      const row=document.createElement("div"); row.className="cand";
+      const cv=document.createElement("canvas"); cv.width=52; cv.height=52;
+      const info=document.createElement("div"); info.className="cinfo";
+      info.innerHTML=`<div class="cch">${c.ch}</div><div class="ctag">${c.tag}</div>`;
+      const btns=document.createElement("div"); btns.className="cbtns";
+      const rep=document.createElement("button"); rep.className="rep"; rep.textContent="置換";
+      const bor=document.createElement("button"); bor.textContent="借用";
+      rep.onclick=()=>this.applyCandidateReplace(c.gid,c.recipe);
+      bor.onclick=()=>this.borrowGid(c.gid,c.ch);
+      btns.appendChild(rep); btns.appendChild(bor);
+      row.appendChild(cv); row.appendChild(info); row.appendChild(btns);
+      grid.appendChild(row);
+      this.drawGlyphMini(cv, this.font._rawContours(c.gid,0));
+    }
+  }
+  _vsLabel(vs){ if(vs>=0xE0100&&vs<=0xE01EF) return "VS"+(vs-0xE0100+17); if(vs>=0xFE00&&vs<=0xFE0F) return "VS"+(vs-0xFE00+1); return "U+"+vs.toString(16).toUpperCase(); }
+  drawGlyphMini(cv, contours){
+    const ctx=cv.getContext("2d"); const dpr=window.devicePixelRatio||1;
+    cv.width=52*dpr; cv.height=52*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,52,52); ctx.fillStyle="#0d1017"; ctx.fillRect(0,0,52,52);
+    const upm=this.font.unitsPerEm; const m=0.12; const s=52*(1-m*2)/upm;
+    const tx=(52-upm*s)/2, ty=52-(52-upm*s)/2; const toS=(x,y)=>[tx+x*s,ty-y*s];
+    ctx.beginPath();
+    for(const c of contours){ const scr=c.map(p=>{const [sx,sy]=toS(p.x,p.y);return {x:sx,y:sy,on:p.on};}); GlyphRender.contourPath(ctx,scr); ctx.closePath(); }
+    ctx.fillStyle="rgba(55,214,195,.22)"; ctx.fill("nonzero");
+    ctx.lineWidth=1; ctx.strokeStyle="rgba(231,236,245,.75)"; ctx.stroke();
+  }
+  applyCandidateReplace(gid, recipe){
+    if(this.targetGid<0) return;
+    this.historyBegin();
+    this.editor.contours=this.font._rawContours(gid,0).map(c=>c.map(p=>({x:p.x,y:p.y,on:p.on})));
+    this.editor.selPoints.clear();
+    this.setRecipe(this.targetGid, recipe);
+    this.commitTarget(); this.historyEnd("candidate"); this.editor.draw(); this.syncPanels();
+  }
+  borrowGid(gid, ch){
+    this.donorChar=ch||""; this.donorGid=gid;
+    this.donorContours=this.font._rawContours(gid,0); this.donorSel=new Set();
+    this.drawDonor(); this.renderDonorContours();
+    this.$("copyParts").disabled=true; this.$("replaceWhole").disabled=this.targetGid<0;
   }
   openDonor(){
     if(!this.font){ this.banner("targetBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
@@ -921,6 +1423,7 @@ class App{
     const upm=this.font.unitsPerEm; const m=0.14;
     const s=Math.min(r.width,r.height)*(1-m*2)/upm;
     const tx=(r.width-upm*s)/2, ty=r.height-(r.height-upm*s)/2;
+    this.donorView={s,tx,ty};
     const toS=(x,y)=>[tx+x*s, ty-y*s];
     this.donorContours.forEach((c,ci)=>{
       ctx.beginPath();
@@ -944,43 +1447,68 @@ class App{
   }
   copyParts(){
     if(this.targetGid<0 || !this.donorSel.size) return;
-    const add=[...this.donorSel].map(ci=>this.donorContours[ci].map(p=>({x:p.x,y:p.y,on:p.on})));
+    this.historyBegin();
+    const idx=[...this.donorSel];
+    const add=idx.map(ci=>this.donorContours[ci].map(p=>({x:p.x,y:p.y,on:p.on})));
+    const start=this.editor.contours.length;
     this.editor.contours=this.editor.contours.concat(add);
-    this.editor.selContours=new Set();
-    for(let i=this.editor.contours.length-add.length;i<this.editor.contours.length;i++) this.editor.selContours.add(i);
-    this.editor.draw(); this.commitTarget(); this.syncPanels();
+    this.editor.selectContourIndices([...Array(add.length)].map((_,i)=>start+i));
+    const prev=this.recipes.get(this.targetGid);
+    const donorCP=this.donorChar?this.donorChar.codePointAt(0):null;
+    if(prev){ prev.manual=true; } else { this.setRecipe(this.targetGid,{op:"donor-parts", donorCP, idx}); }
+    this.editor.draw(); this.commitTarget(); this.historyEnd("copyParts"); this.syncPanels();
   }
   replaceWhole(){
     if(this.targetGid<0 || !this.donorContours.length) return;
+    this.historyBegin();
     this.editor.contours=this.donorContours.map(c=>c.map(p=>({x:p.x,y:p.y,on:p.on})));
-    this.editor.selContours=new Set();
-    this.editor.draw(); this.commitTarget(); this.syncPanels();
+    this.editor.selPoints.clear();
+    const donorCP=this.donorChar?this.donorChar.codePointAt(0):null;
+    this.setRecipe(this.targetGid,{op:"donor-replace", donorCP});
+    this.editor.draw(); this.commitTarget(); this.historyEnd("replaceWhole"); this.syncPanels();
   }
   commitTarget(){
     if(this.targetGid<0||!this.font) return;
     this.font.setEdited(this.targetGid, this.editor.contours);
+    if(this.targetChar) this.addToWorklist(this.targetChar.codePointAt(0));
     this.refreshEdited();
   }
   syncPanels(){
     this.$("replaceWhole").disabled=!(this.donorContours.length && this.targetGid>=0);
     this.$("copyParts").disabled=!(this.donorSel.size && this.targetGid>=0);
+    const hasGlyph=this.targetGid>=0 && !!this.editor.upm;
+    const hasSel=hasGlyph && this.editor.hasSelection();
+    for(const id of ["btnDelPts","btnToggleCurve","btnCopy","btnDup","btnFlipH","btnFlipV"]) this.$(id).disabled=!hasSel;
+    this.$("btnPaste").disabled=!(hasGlyph && this.clipboard && this.clipboard.length);
     this.editor._hud();
   }
   refreshEdited(){
     const list=this.$("editedList");
-    const n=this.font?this.font.editedGlyphs.size:0;
-    this.$("countPill").textContent=`編集 ${n} 字`;
-    if(!n){ list.innerHTML=`<div class="empty">まだありません</div>`; return; }
-    list.innerHTML="";
+    if(!this.font){ this.$("countPill").textContent="編集 0 字"; list.innerHTML=`<div class="empty">「対象の文字」で漢字を入力して開くと、ここに並びます</div>`; return; }
     const rev=new Map();
-    if(this.font){ for(const [cp,g] of this.font.cmapMap){ if(this.font.editedGlyphs.has(g)&&!rev.has(g)) rev.set(g,cp); } }
-    for(const gid of this.font.editedGlyphs.keys()){
-      const cp=rev.get(gid); const ch=cp?String.fromCodePoint(cp):"?";
-      const uni=cp?("U+"+cp.toString(16).toUpperCase().padStart(4,"0")):"—";
-      const item=document.createElement("div"); item.className="item"+(gid===this.targetGid?" active":"");
-      item.innerHTML=`<div class="ch">${ch}</div><div class="meta">#${gid}<br>${uni}</div><button class="rm" title="編集を取消">✕</button>`;
-      item.querySelector(".ch").onclick=item.querySelector(".meta").onclick=()=>{ if(cp){ this.$("targetInput").value=ch; this.openTarget(); } };
-      item.querySelector(".rm").onclick=(ev)=>{ ev.stopPropagation(); this.font.clearEdited(gid); if(gid===this.targetGid && cp) this.openTarget(); this.refreshEdited(); };
+    for(const [cp,g] of this.font.cmapMap){ if(this.font.editedGlyphs.has(g)&&!rev.has(g)) rev.set(g,cp); }
+    for(const gid of this.font.editedGlyphs.keys()){ const cp=rev.get(gid); if(cp!=null && !this.worklist.includes(cp)) this.worklist.push(cp); }
+    const editedCount=this.font.editedGlyphs.size;
+    const total=this.worklist.length;
+    this.$("countPill").textContent=`編集 ${editedCount} / ${total} 字`;
+    if(!total){ list.innerHTML=`<div class="empty">「対象の文字」で漢字を入力して開くと、ここに並びます</div>`; return; }
+    list.innerHTML="";
+    for(const cp of this.worklist){
+      const gid=this.font.cmapMap.get(cp); const ch=String.fromCodePoint(cp);
+      const edited=gid!=null && this.font.editedGlyphs.has(gid);
+      const uni="U+"+cp.toString(16).toUpperCase().padStart(4,"0");
+      const item=document.createElement("div"); item.className="item"+(edited?"":" todo")+(gid===this.targetGid?" active":"");
+      item.innerHTML=`<div class="ch">${ch}</div><div class="meta">${uni}<br><span class="badge ${edited?"done":"todo"}">${edited?"編集済み":"未編集"}</span></div><button class="rm" title="リストから削除">✕</button>`;
+      item.querySelector(".ch").onclick=item.querySelector(".meta").onclick=()=>{ this.$("targetInput").value=ch; this.openTarget(); };
+      item.querySelector(".rm").onclick=(ev)=>{ ev.stopPropagation();
+        this.worklist=this.worklist.filter(x=>x!==cp);
+        if(gid!=null && this.font.editedGlyphs.has(gid)){
+          const before=this.snapshotGlyph(gid); this.font.clearEdited(gid); this.recipes.delete(gid);
+          const after=this.snapshotGlyph(gid); this.history.record(gid,before,after,"remove");
+          if(gid===this.targetGid) this.openTarget();
+        }
+        this.refreshEdited();
+      };
       list.appendChild(item);
     }
   }
@@ -1014,9 +1542,10 @@ class App{
 
   saveProject(){
     if(!this.font){ return; }
-    const data={ version:1, font:this.fontName||"", unitsPerEm:this.font.unitsPerEm, glyphs:{} };
+    const data={ version:2, font:this.fontName||"", unitsPerEm:this.font.unitsPerEm, glyphs:{}, recipes:{} };
     const rev=new Map(); for(const [cp,g] of this.font.cmapMap){ if(this.font.editedGlyphs.has(g)&&!rev.has(g)) rev.set(g,cp); }
     for(const [gid,cs] of this.font.editedGlyphs){ const cp=rev.get(gid); const key=cp!=null?("u"+cp):("g"+gid); data.glyphs[key]=cs; }
+    for(const [gid,r] of this.recipes){ const cp=rev.get(gid); if(cp!=null) data.recipes["u"+cp]=r; }
     const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
     const url=URL.createObjectURL(blob); const a=document.createElement("a");
     a.href=url; a.download=(this.fontName||"kyujitai").replace(/\.[^.]+$/,"")+"-work.json"; a.click();
@@ -1028,15 +1557,44 @@ class App{
       const data=JSON.parse(await file.text());
       let applied=0;
       for(const key in data.glyphs){
-        let gid=-1;
-        if(key[0]==="u"){ const cp=parseInt(key.slice(1),10); gid=this.font.cmapMap.get(cp)??-1; }
+        let gid=-1, cp=null;
+        if(key[0]==="u"){ cp=parseInt(key.slice(1),10); gid=this.font.cmapMap.get(cp)??-1; }
         else if(key[0]==="g"){ gid=parseInt(key.slice(1),10); }
-        if(gid>=0){ this.font.setEdited(gid, data.glyphs[key]); applied++; }
+        if(gid>=0){ this.font.setEdited(gid, data.glyphs[key]); applied++; if(cp!=null) this.addToWorklist(cp); }
       }
+      if(data.recipes){ for(const key in data.recipes){ if(key[0]==="u"){ const cp=parseInt(key.slice(1),10); const gid=this.font.cmapMap.get(cp); if(gid!=null) this.recipes.set(gid,data.recipes[key]); } } }
+      this.history.reset();
       this.refreshEdited();
       this.banner("fontBanner","ok",`作業を読み込みました（${applied} 字を復元）`);
       if(this.targetChar) this.openTarget();
     }catch(e){ this.banner("fontBanner","err","作業ファイルを読み込めませんでした。"); }
+  }
+  async reuseProject(file){
+    if(!this.font){ this.banner("fontBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    try{
+      const data=JSON.parse(await file.text());
+      const recipes=data.recipes||{};
+      const keys=Object.keys(recipes).length?Object.keys(recipes):Object.keys(data.glyphs||{});
+      let applied=0; const review=[];
+      for(const key of keys){
+        if(key[0]!=="u") continue;
+        const cp=parseInt(key.slice(1),10); const ch=String.fromCodePoint(cp);
+        const targetGid=this.font.cmapMap.get(cp);
+        if(targetGid==null){ review.push(ch); continue; }
+        this.addToWorklist(cp);
+        const r=recipes[key]; let clean=false;
+        if(r && r.op==="variant-oldcp"){ const sg=this.font.cmapMap.get(r.oldCP); if(sg!=null){ this.font.setEdited(targetGid,this.font._rawContours(sg,0)); this.recipes.set(targetGid,{op:r.op,oldCP:r.oldCP}); clean=true; } }
+        else if(r && r.op==="variant-ivs"){ const v=this.font.variantsFor(cp).find(x=>x.vs===r.vs); if(v){ this.font.setEdited(targetGid,this.font._rawContours(v.gid,0)); this.recipes.set(targetGid,{op:r.op,vs:r.vs}); clean=true; } }
+        else if(r && r.op==="donor-replace"){ const dg=r.donorCP!=null?this.font.cmapMap.get(r.donorCP):null; if(dg!=null){ this.font.setEdited(targetGid,this.font._rawContours(dg,0)); this.recipes.set(targetGid,{op:r.op,donorCP:r.donorCP}); clean=true; } }
+        else if(r && r.op==="donor-parts"){ const dg=r.donorCP!=null?this.font.cmapMap.get(r.donorCP):null; if(dg!=null&&Array.isArray(r.idx)){ const dc=this.font._rawContours(dg,0); const add=r.idx.filter(i=>i<dc.length).map(i=>dc[i].map(p=>({...p}))); if(add.length){ this.font.setEdited(targetGid,add); this.recipes.set(targetGid,{...r,manual:true}); } } }
+        if(clean && !(r&&r.manual)) applied++; else review.push(ch);
+      }
+      this.history.reset();
+      this.refreshEdited();
+      const uniq=[...new Set(review)];
+      this.banner("fontBanner","ok",USER_SETTINGS.strings.reuseDone(applied,uniq.length)+(uniq.length?`（要確認: ${uniq.join("")}）`:""));
+      if(this.targetChar) this.openTarget();
+    }catch(e){ this.banner("fontBanner","err","履歴ファイルを読み込めませんでした。"); }
   }
 }
 
