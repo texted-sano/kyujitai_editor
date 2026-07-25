@@ -110,6 +110,13 @@ input,button{font-size:14px}
 .cand .cbtns .rep{background:var(--edit);border-color:var(--edit);color:#06231f;font-weight:700}
 .cand .cbtns button:hover{filter:brightness(1.08)}
 
+.parts-group-title{font-size:11px;letter-spacing:.08em;color:var(--donor);margin:14px 0 8px;font-weight:600}
+.parts-group-title:first-child{margin-top:2px}
+.parts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px}
+.part-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--ink-dim);cursor:pointer;transition:.12s}
+.part-item:hover{border-color:var(--donor);color:var(--ink);background:var(--donor-soft)}
+.part-item canvas{width:46px;height:46px;background:var(--canvas-bg);border:1px solid var(--line);border-radius:6px}
+.part-item .pch{font-size:15px;line-height:1}
 .contours{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .contours .row{
   display:flex;align-items:center;gap:9px;padding:7px 9px;border:1px solid var(--line);
@@ -227,6 +234,7 @@ a.link:hover{text-decoration:underline}
         <button class="tbtn" id="toolRotate" title="回転 (R)"><span class="ic">⟳</span><span class="tx">回転</span></button>
         <button class="tbtn" id="toolAddCorner" title="角点を追加 (A)"><span class="ic">◇</span><span class="tx">角点</span></button>
         <button class="tbtn" id="toolAddCurve" title="曲線点を追加 (S)"><span class="ic">～</span><span class="tx">曲線点</span></button>
+        <button class="tbtn" id="toolScissors" title="はさみ・輪郭上の2点で分割 (K)"><span class="ic">✂</span><span class="tx">はさみ</span></button>
         <button class="tbtn" id="toolPan" title="画面移動 (Space)"><span class="ic">✋</span><span class="tx">移動</span></button>
       </div>
     </div>
@@ -268,6 +276,7 @@ a.link:hover{text-decoration:underline}
             <small>または「フォントを開く」。Noto Sans JP / 明朝 / ゴシック等の .ttf（TrueType輪郭）</small>
           </div>
           <div id="fontBanner"></div>
+          <button class="btn ghost" id="ffBtn" style="margin-top:8px">🛠 OTF→TTF変換ガイド（配布前準備）</button>
         </div>
 
         <div class="block">
@@ -308,7 +317,8 @@ a.link:hover{text-decoration:underline}
         <div class="block">
           <h3>3. 部品を借りる文字（ドナー）</h3>
           <p class="hint">部品の供給元にする文字、または既存の旧字体を1字。表示された字は直接クリックで部品選択できます。</p>
-          <div class="charline" style="margin-top:9px">
+          <button class="btn ghost" id="partsBtn" style="margin-bottom:8px">🧩 部品パレットから選ぶ</button>
+          <div class="charline" style="margin-top:0">
             <input id="donorInput" maxlength="2" placeholder="例：立" autocomplete="off">
             <button class="btn donor" id="donorLoad" style="width:auto;padding:9px 14px">表示</button>
           </div>
@@ -372,7 +382,9 @@ a.link:hover{text-decoration:underline}
       <span><span class="kbd">Ctrl+C / Ctrl+V</span> 点をコピー／貼付（切り抜き）</span>
       <span><span class="kbd">Ctrl+Z / Ctrl+Shift+Z</span> 戻す／やり直し</span>
     </div>
-    <p style="margin-top:10px"><b>道具</b> <span class="kbd">V</span>選択 <span class="kbd">T</span>自由変形 <span class="kbd">R</span>回転 <span class="kbd">A</span>角点追加 <span class="kbd">S</span>曲線点追加 <span class="kbd">Space</span>画面移動 <span class="kbd">[ ]</span>回転(Shiftで15°)</p>
+    <p style="margin-top:10px"><b>道具</b> <span class="kbd">V</span>選択 <span class="kbd">T</span>自由変形 <span class="kbd">R</span>回転 <span class="kbd">A</span>角点追加 <span class="kbd">S</span>曲線点追加 <span class="kbd">K</span>はさみ <span class="kbd">Space</span>画面移動 <span class="kbd">[ ]</span>回転(Shiftで15°)</p>
+    <p style="margin-top:8px"><b>はさみ</b>：輪郭上の2点をクリックすると、その2点で1つの閉じた輪郭を2つに分割します（長い四角→2つの四角、対角の2点→2つの三角）。角にスナップし、辺の途中でも切れます。同じ辺だけ・同じ点は分割できません。</p>
+    <p><b>部品パレット</b>：右カラム「3. ドナー」の「部品パレットから選ぶ」で、旧字体作成によく使う偏旁・要素を一覧から選べます。字形は読み込んだフォントから採るので、明朝／ゴシック等に自動で揃います。選ぶとドナー欄に入り、輪郭を選んでコピーできます。</p>
     <div class="divider" style="margin-top:14px"></div>
     <p style="margin-top:12px"><b>切り抜き（例：車の中の田だけ欲しい）</b>：範囲選択などで田を構成する点を選び <span class="kbd">Ctrl+C</span>。対象の文字を開いて <span class="kbd">Ctrl+V</span>。選んだ点は輪郭として閉じられ、切り出した形が貼り付きます。</p>
     <p><b>自由変形</b>：Tで変形ツール。選択（なければ全体）に枠が出るので、角ハンドルで縦横同時、辺ハンドルで片方向、Shiftで等比拡大縮小。※太さも一緒に拡縮されます（線幅一定の変形はしません）。</p>
@@ -384,6 +396,50 @@ a.link:hover{text-decoration:underline}
     <p style="margin-top:12px"><b>対応フォント</b>：TrueType輪郭（glyf）の .ttf。游明朝/游ゴシック/IPAex/Noto Sans JP(static) 等。CFF形式(.otf/Noto Sans CJK) は非対応。可変フォント(VF)は既定インスタンスにのみ適用（静的化推奨）。</p>
     <p><b>書き出し後は必ず</b> FontForge か Windows で開いて表示を確認してください（本ツールは書き出し直後に内部で自己検証も行います）。</p>
     <button class="btn" id="helpClose" style="margin-top:14px">閉じる</button>
+  </div>
+</div>
+
+<!-- ===== PARTS PALETTE MODAL ===== -->
+<div class="overlay" id="partsOverlay">
+  <div class="modal" style="max-width:680px">
+    <h2>部品パレット</h2>
+    <p id="partsStyle" class="hint" style="margin:2px 0 6px"></p>
+    <p class="hint" id="partsNote" style="margin:0 0 10px"></p>
+    <div id="partsBody" style="max-height:60vh;overflow:auto"></div>
+    <button class="btn" id="partsClose" style="margin-top:14px">閉じる</button>
+  </div>
+</div>
+
+<!-- ===== FONTFORGE GUIDE MODAL ===== -->
+<div class="overlay" id="ffOverlay">
+  <div class="modal" style="max-width:640px;max-height:86vh;overflow:auto">
+    <h2>OTF→TTF 変換ガイド（配布用ベースTTFの仕込み）</h2>
+    <p>本ツールは <b>編集した glyf だけを差し替え、name / OS/2 / cmap は元のまま温存</b>します（サージカル・エクスポート）。裏を返すと<b>入力TTFの誤りもそのまま残る</b>ため、<u>編集する前に</u> FontForge で「正しいメタデータを持つベースTTF」を作っておくのが要点です。</p>
+
+    <div class="banner warn" style="margin:10px 0">つまづきポイント：Noto Sans JP など巨大な日中韓OTFをTTFに変換すると、FontForge が「中国語フォント」と誤判定し、OS/2 のコードページを <b>932(日本語)=OFF / 950(繁体字)=ON</b> にしてしまうことがあります。すると <b>Wordでは使えてもPowerPointで「選べるが適用されない」</b> 症状が出ます。</p></div>
+
+    <p style="margin-top:12px"><b>ステップ1：FontForgeでベースTTFを仕込む</b></p>
+    <p style="margin:6px 0"><b>1-1.</b> 大元のOTF（例：Noto Sans JP）を FontForge で開く。</p>
+    <p style="margin:6px 0"><b>1-2. フォント名を完全に独立させる</b>。「エレメント → フォント情報」の <b>「PS Names」</b>と<b>「TTF名」</b>の両方に独自名（例 <span class="kbd">Kyujitai-Regular</span>）を設定。<b>「TTF名」のスタイル（サブファミリー）は必ず <span class="kbd">Regular</span> のみ</b>にする（Bold/Light 等が残ると配布先で不具合）。元の名前を残さず独立させ、元フォントとの名前衝突・上書きを防ぐ。</p>
+    <p style="margin:6px 0"><b>1-3. 日本語フラグを直す</b>。「フォント情報 → OS/2 → 文字セット」で右下「コードページ」一覧を確認し、<b>「932, 日本語」だけ</b>を選択状態にする。<b>「950, 繁体字中国語」など日本語以外が選ばれていたら Ctrl+クリックで解除</b>。ここが不具合の根本原因。</p>
+    <p style="margin:6px 0"><b>1-4.</b> 「ファイル → フォントを出力」で <b>TrueType(TTF)</b> を選び書き出す（例 <span class="kbd">Base_Kyujitai.ttf</span>）。中身は未編集でも、名前と言語フラグは配布用に整った状態。</p>
+
+    <p style="margin-top:12px"><b>ステップ2：本ツールで編集</b></p>
+    <p style="margin:6px 0">元のOTFではなく、<b>ステップ1で作った Base_Kyujitai.ttf を読み込む</b>。旧字体に編集して「TTFを書き出す」。name / OS/2（1で設定した名前・932フラグ）はそのまま引き継がれます。</p>
+
+    <p style="margin-top:12px"><b>ステップ3：配布</b></p>
+    <p style="margin:6px 0">書き出したTTFは独自名と932フラグを正しく持つので、Windows/Mac・Word/PowerPoint のいずれでもインストールするだけで適用されます。</p>
+
+    <div class="divider" style="margin:14px 0"></div>
+    <p><b>配布前チェックリスト</b></p>
+    <div class="keys" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <span>☐ 独自フォント名を PS Names / TTF名 の両方に設定したか</span>
+      <span>☐ TTF名のスタイルが <span class="kbd">Regular</span> のみか</span>
+      <span>☐ OS/2 文字セットで「932, 日本語」のみ選択か（950等が混在していないか）</span>
+      <span>☐ 編集は元OTFでなく「ベースTTF」を使ったか</span>
+      <span>☐ 書き出したTTFを Word・PowerPoint 両方で実機テストしたか</span>
+    </div>
+    <button class="btn" id="ffClose" style="margin-top:16px">閉じる</button>
   </div>
 </div>
 
@@ -434,6 +490,15 @@ const USER_SETTINGS = {
     full:"外字スロット(U+E000–U+E0FF)が満杯です。256字までにしてください。",
     okSelf:(name,n)=>`外字ファイルを書き出しました：${name}（${n} 字）`,
     selfFail:"外字ファイルの自己検証に失敗しました。書き出しを中止しました。"
+  },
+  parts:{
+    note:"クリックで右の「ドナー」欄に読み込みます。輪郭を選んで「選択した輪郭を対象へコピー」で流用できます。字形は読み込んだフォントから採るので、そのフォントの明朝／ゴシック等に自動で揃います。",
+    groups:[
+      { name:"旧字パーツ（要素・旁）", chars:"靑眞曾廣黃黑髙齊舊龍龜兪者臣睪咼巠僉" },
+      { name:"偏（左の部品を借りる）", chars:"糸言金食貝車馬魚鳥木火水手心目王石示衣禾米舟" },
+      { name:"旁・冠・繞（右/上/囲みを借りる）", chars:"頁隹戈邑阜辵邊進遠家寶竹艸廴囗門广" },
+      { name:"点画・小部品", chars:"丶丨一二亠冖宀彡巛乂丷卜厶" }
+    ]
   }
 };
 
@@ -580,6 +645,13 @@ class TTFFont{
   }
   variantsFor(cp){ return this.ivsMap.get(cp)||[]; }
   oldFormCodepoint(cp){ const o=TTFFont.NEW_TO_OLD[cp]; if(o===undefined) return null; return this.cmapMap.has(o)?o:null; }
+  oldFormCodepoints(cp){
+    const out=[]; const seen=new Set();
+    const push=(o)=>{ if(o!=null && this.cmapMap.has(o) && !seen.has(o)){ seen.add(o); out.push(o); } };
+    push(TTFFont.NEW_TO_OLD[cp]);
+    const arr=TTFFont.NEW_TO_OLD_MULTI[cp]; if(arr) for(const o of arr) push(o);
+    return out;
+  }
   hasCodepoint(cp){ return this.cmapMap.has(cp); }
   _readCmap4(o){
     const dv=this.dv; const segX2=dv.getUint16(o+6); const segCount=segX2/2;
@@ -723,7 +795,8 @@ class TTFFont{
     for(let i=0;i<padded;i+=4){ const b0=i<u8.length?u8[i]:0,b1=i+1<u8.length?u8[i+1]:0,b2=i+2<u8.length?u8[i+2]:0,b3=i+3<u8.length?u8[i+3]:0; sum=(sum+(((b0<<24)|(b1<<16)|(b2<<8)|b3)>>>0))>>>0; } return sum>>>0; }
   _checksumBuffer(u8){ let sum=0; const n=u8.length; for(let i=0;i<n;i+=4){ const b0=u8[i]||0,b1=u8[i+1]||0,b2=u8[i+2]||0,b3=u8[i+3]||0; sum=(sum+(((b0<<24)|(b1<<16)|(b2<<8)|b3)>>>0))>>>0; } return sum>>>0; }
 }
-TTFFont.NEW_TO_OLD=(function(){ const s="国國学學体體気氣数數桜櫻医醫円圓声聲売賣広廣従從戦戰検檢権權残殘沢澤浜濱発發県縣真眞経經続續総總観觀読讀豊豐転轉軽輕鉄鐵関關険險雑雜静靜駅驛験驗髪髮黒黑歯齒竜龍仏佛会會伝傳価價剣劍労勞勧勸参參号號営營図圖団團圧壓変變実實対對専專将將属屬庁廳応應悪惡払拂拡擴断斷旧舊昼晝暦曆様樣歴歷毎每浅淺済濟温溫湾灣満滿灯燈点點焼燒状狀独獨獣獸礼禮禅禪称稱穂穗窃竊絵繪継繼縦縱繊纖聴聽胆膽脳腦臓臟舎舍芸藝荘莊薬藥虚虛虫蟲蛍螢装裝覧覽触觸訳譯証證譲讓辞辭郷鄉酔醉釈釋銭錢録錄隠隱霊靈頼賴顕顯騒騷駆驅麦麥黄黃齢齡廃廢弾彈径徑恵惠戸戶捜搜摂攝暁曉曽曾楼樓歓歡殻殼浄淨渇渴渋澀滝瀧炉爐犠犧猟獵畳疊秘祕穏穩縄繩缶罐翻飜茎莖蚕蠶覇霸誉譽謡謠践踐鋳鑄鎮鎭陥陷鶏鷄寿壽巻卷帯帶帰歸拝拜掲揭揺搖横橫楽樂蔵藏斎齋賛贊双雙壊壞壮壯囲圍桟棧湿濕"; const m={}; for(let i=0;i+1<s.length;i+=2){ m[s.charCodeAt(i)]=s.charCodeAt(i+1); } return m; })();
+TTFFont.NEW_TO_OLD=(function(){ const s="国國学學体體気氣数數桜櫻医醫円圓声聲売賣広廣従從戦戰検檢権權残殘沢澤浜濱発發県縣真眞経經続續総總観觀読讀豊豐転轉軽輕鉄鐵関關険險雑雜静靜駅驛験驗髪髮黒黑歯齒竜龍仏佛会會伝傳価價剣劍労勞勧勸参參号號営營図圖団團圧壓変變実實対對専專将將属屬庁廳応應悪惡払拂拡擴断斷旧舊昼晝暦曆様樣歴歷毎每浅淺済濟温溫湾灣満滿灯燈点點焼燒状狀独獨獣獸礼禮禅禪称稱穂穗窃竊絵繪継繼縦縱繊纖聴聽胆膽脳腦臓臟舎舍芸藝荘莊薬藥虚虛虫蟲蛍螢装裝覧覽触觸訳譯証證譲讓辞辭郷鄉酔醉釈釋銭錢録錄隠隱霊靈頼賴顕顯騒騷駆驅麦麥黄黃齢齡廃廢弾彈径徑恵惠戸戶捜搜摂攝暁曉曽曾楼樓歓歡殻殼浄淨渇渴渋澀滝瀧炉爐犠犧猟獵畳疊秘祕穏穩縄繩缶罐翻飜茎莖蚕蠶覇霸誉譽謡謠践踐鋳鑄鎮鎭陥陷鶏鷄寿壽巻卷帯帶帰歸拝拜掲揭揺搖横橫楽樂蔵藏斎齋賛贊双雙壊壞壮壯囲圍桟棧湿濕争爭党黨条條乱亂徳德弥彌万萬亜亞斉齊児兒徴徵与與挙擧覚覺献獻収收単單択擇拠據亀龜尽盡巌巖圏圈塩鹽勲勳勅敕画畫"; const m={}; for(let i=0;i+1<s.length;i+=2){ m[s.charCodeAt(i)]=s.charCodeAt(i+1); } return m; })();
+TTFFont.NEW_TO_OLD_MULTI=(function(){ const map={"弁":["辨","瓣","辯"],"台":["臺","颱"],"余":["餘"],"予":["豫"],"渋":["澁","澀"]}; const out={}; for(const k in map){ out[k.codePointAt(0)]=map[k].map(c=>c.codePointAt(0)); } return out; })();
 
 /* =========================================================================
    GLYPH RENDER HELPERS
@@ -836,6 +909,7 @@ class Editor{
     if(this.showGuide && this.origContours.length) this._drawOutline(this.origContours,"rgba(154,166,189,.26)",null,false);
     this._drawOutline(this.contours,"rgba(231,236,245,.9)","rgba(55,214,195,.10)",true);
     if(this.tool==="transform") this._drawTransformBox();
+    if(this.tool==="scissors") this._drawScissorsGuide();
     if(this.mode==="marquee"&&this.marquee) this._drawMarquee();
     this._hud();
   }
@@ -923,11 +997,12 @@ class Editor{
     if(!this.app.font){ this.hud.innerHTML="フォントを読み込んでください"; return; }
     if(!this.upm){ this.hud.innerHTML="文字を開いてください"; return; }
     const ch=this.app.targetChar||"";
-    const toolName={select:"選択",transform:"自由変形",addcorner:"角点を追加",addcurve:"曲線点を追加",rotate:"回転",pan:"画面移動"}[this.tool]||this.tool;
+    const toolName={select:"選択",transform:"自由変形",addcorner:"角点を追加",addcurve:"曲線点を追加",rotate:"回転",pan:"画面移動",scissors:"はさみ"}[this.tool]||this.tool;
     let l2;
     if(this.tool==="transform") l2="ハンドルをドラッグで拡大縮小（角＝両方向・辺＝片方向、Shiftで等比）";
     else if(this.tool==="addcorner") l2="線上をクリックで角点を追加";
     else if(this.tool==="addcurve") l2="線上をクリックで曲線点を追加";
+    else if(this.tool==="scissors") l2=this._cutA?"2点目をクリックで切断（同じ輪郭上）":"輪郭上の1点目をクリック（角/辺）。2点で分割";
     else if(this.tool==="rotate") l2="ドラッグで回転／ [ ] で1°・Shiftで15°";
     else if(this.selPoints.size) l2=`点を ${this.selPoints.size} 個選択中／辺ドラッグ・複数移動・C で曲線化・Del で削除`;
     else l2="点/辺/内側をクリック、または空きをドラッグで範囲選択";
@@ -950,6 +1025,7 @@ class Editor{
     if(this.tool==="pan"||this.app.spaceDown){ this.mode="pan"; this.panStart=[this.tx,this.ty]; return; }
     if(this.tool==="addcorner"){ this._insertPoint(px,py,true); this.mode="none"; return; }
     if(this.tool==="addcurve"){ this._insertPoint(px,py,false); this.mode="none"; return; }
+    if(this.tool==="scissors"){ this._scissorsClick(px,py); this.mode="none"; return; }
     if(this.tool==="transform"){
       const h=this._hitHandle(px,py);
       if(h!==-1){ this._beginTransform(h); return; }
@@ -996,6 +1072,7 @@ class Editor{
     this.app.historyBegin(); this.mode="transform";
   }
   onMove(e){
+    if(this.tool==="scissors" && this._cutA && (this.mode==="none"||this.mode===undefined)){ this._cutCursor=this._localXY(e); this.draw(); return; }
     if(this.mode==="none"||this.mode===undefined) return;
     const [px,py]=this._localXY(e); const dx=px-this.dragStart[0], dy=py-this.dragStart[1];
     if(Math.abs(dx)+Math.abs(dy)>2) this.dragMoved=true;
@@ -1071,6 +1148,59 @@ class Editor{
     this.contours[best.ci].splice(best.i+1,0,{x:best.x,y:best.y,on});
     this.selPoints=new Set([this._key(best.ci,best.i+1)]);
     this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("anchor"); this.draw(); this.app.syncPanels();
+  }
+  _nearestOnOutline(px,py){
+    const R=USER_SETTINGS.geom.pointHitRadius;
+    for(let ci=this.contours.length-1;ci>=0;ci--){ const c=this.contours[ci];
+      for(let vi=0;vi<c.length;vi++){ const [sx,sy]=this.toScreen(c[vi].x,c[vi].y); if(Math.hypot(sx-px,sy-py)<=R) return {ci,atVertex:true,vi,x:c[vi].x,y:c[vi].y}; } }
+    let best=null,bestD=Infinity;
+    for(let ci=0;ci<this.contours.length;ci++){ const c=this.contours[ci]; const n=c.length;
+      for(let i=0;i<n;i++){ const a=c[i], b=c[(i+1)%n];
+        const [ax,ay]=this.toScreen(a.x,a.y),[bx,by]=this.toScreen(b.x,b.y);
+        const vx=bx-ax,vy=by-ay; const len2=vx*vx+vy*vy||1e-9; let t=((px-ax)*vx+(py-ay)*vy)/len2; t=Math.max(0,Math.min(1,t));
+        const qx=ax+vx*t, qy=ay+vy*t; const d=Math.hypot(qx-px,qy-py);
+        if(d<bestD){ bestD=d; best={ci,atVertex:false,segIndex:i,t,x:Math.round(a.x+(b.x-a.x)*t),y:Math.round(a.y+(b.y-a.y)*t)}; } } }
+    return (best&&bestD<=14)?best:null;
+  }
+  _scissorsClick(px,py){
+    const hit=this._nearestOnOutline(px,py);
+    if(!hit) return;
+    if(!this._cutA){ this._cutA=hit; this._cutCursor=[px,py]; this.draw(); return; }
+    if(hit.ci!==this._cutA.ci){ this.app.banner("targetBanner","warn","はさみ：同じ輪郭の上で2点を指定してください。"); this._cutA=null; this._cutCursor=null; this.draw(); return; }
+    this.app.historyBegin();
+    const ok=this._performScissors(this._cutA,hit);
+    this._cutA=null; this._cutCursor=null;
+    if(ok){ this.selPoints.clear(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("scissors"); this.app.banner("targetBanner","ok","はさみ：輪郭を2つに分割しました。"); }
+    else this.app.banner("targetBanner","warn","はさみ：この2点では分割できません（同じ辺・同じ点は不可）。");
+    this.draw(); this.app.syncPanels();
+  }
+  _performScissors(a,b){
+    const ci=a.ci; const src=this.contours[ci]; if(!src) return false;
+    const pts=[]; let idxA=-1, idxB=-1;
+    for(let i=0;i<src.length;i++){
+      pts.push({x:src[i].x,y:src[i].y,on:src[i].on});
+      if(a.atVertex && a.vi===i) idxA=pts.length-1;
+      if(b.atVertex && b.vi===i) idxB=pts.length-1;
+      const ins=[];
+      if(!a.atVertex && a.segIndex===i) ins.push({who:"a",t:a.t,x:a.x,y:a.y});
+      if(!b.atVertex && b.segIndex===i) ins.push({who:"b",t:b.t,x:b.x,y:b.y});
+      ins.sort((p,q)=>p.t-q.t);
+      for(const it of ins){ pts.push({x:it.x,y:it.y,on:true}); if(it.who==="a") idxA=pts.length-1; else idxB=pts.length-1; }
+    }
+    if(idxA<0||idxB<0||idxA===idxB) return false;
+    const loop1=[]; for(let k=idxA;;k=(k+1)%pts.length){ loop1.push(pts[k]); if(k===idxB) break; }
+    const loop2=[]; for(let k=idxB;;k=(k+1)%pts.length){ loop2.push(pts[k]); if(k===idxA) break; }
+    if(loop1.length<3||loop2.length<3) return false;
+    const clean=(arr)=>arr.map(p=>({x:p.x,y:p.y,on:p.on!==false}));
+    this.contours.splice(ci,1,clean(loop1),clean(loop2));
+    return true;
+  }
+  _drawScissorsGuide(){
+    const ctx=this.ctx; if(!this._cutA) return;
+    const [ax,ay]=this.toScreen(this._cutA.x,this._cutA.y);
+    if(this._cutCursor){ ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle="#f2665a"; ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(this._cutCursor[0],this._cutCursor[1]); ctx.stroke(); ctx.restore(); }
+    ctx.beginPath(); ctx.arc(ax,ay,5,0,Math.PI*2); ctx.fillStyle="#f2665a"; ctx.fill(); ctx.strokeStyle="#0d1017"; ctx.lineWidth=1.5; ctx.stroke();
   }
   toggleCurvePoint(){ const refs=this._selRefs(); if(!refs.length) return; this.app.historyBegin(); for(const r of refs) r.p.on=!r.p.on; this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("curve"); this.draw(); }
   nudge(dx,dy){ const refs=this._selRefs(); if(!refs.length) return; this.app.historyBegin(); for(const r of refs){ r.p.x+=dx; r.p.y+=dy; } this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("nudge"); this.draw(); }
@@ -1185,7 +1315,12 @@ class App{
     this.$("toolRotate").onclick=()=>this.setTool("rotate");
     this.$("toolAddCorner").onclick=()=>this.setTool("addcorner");
     this.$("toolAddCurve").onclick=()=>this.setTool("addcurve");
+    this.$("toolScissors").onclick=()=>this.setTool("scissors");
     this.$("toolPan").onclick=()=>this.setTool("pan");
+    this.$("partsBtn").onclick=()=>this.openParts();
+    this.$("partsClose").onclick=()=>this.$("partsOverlay").classList.remove("show");
+    this.$("ffBtn").onclick=()=>this.$("ffOverlay").classList.add("show");
+    this.$("ffClose").onclick=()=>this.$("ffOverlay").classList.remove("show");
     this.$("btnGuide").onclick=()=>this.toggleGuide();
     this.$("btnUndo").onclick=()=>this.history.doUndo();
     this.$("btnRedo").onclick=()=>this.history.doRedo();
@@ -1236,11 +1371,12 @@ class App{
     if(!this.font){ this.banner("bulkBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
     const targets=this.worklist.filter(cp=>{ const g=this.font.cmapMap.get(cp); return g!=null && !this.font.editedGlyphs.has(g); });
     if(!targets.length){ this.banner("bulkBanner","warn","未編集の対象がありません。"); return; }
-    const batch=[]; let done=0; const noCand=[];
+    const batch=[]; let done=0; const noCand=[]; const multiCand=[];
     for(const cp of targets){
       const gid=this.font.cmapMap.get(cp);
       const cand=this._firstCandidate(cp);
       if(!cand){ noCand.push(String.fromCodePoint(cp)); continue; }
+      if(cand.ambiguous){ multiCand.push(String.fromCodePoint(cp)); continue; }
       const before=this.snapshotGlyph(gid);
       this.font.setEdited(gid, this.font._rawContours(cand.gid,0));
       this.recipes.set(gid, cand.recipe);
@@ -1251,15 +1387,17 @@ class App{
     if(this.targetGid>=0) this.openTarget();
     this.refreshEdited();
     let msg=`${done} 字を旧字体・異体字へ変換しました。`;
+    if(multiCand.length) msg+=` 候補複数(右で選択): ${multiCand.join("")}`;
     if(noCand.length) msg+=` 候補なし(手動): ${noCand.join("")}`;
     this.banner("bulkBanner", done?"ok":"warn", msg);
   }
   _firstCandidate(cp){
-    const oldCP=this.font.oldFormCodepoint(cp);
-    if(oldCP){ const g=this.font.cmapMap.get(oldCP); if(g!=null) return {gid:g, recipe:{op:"variant-oldcp", oldCP}}; }
-    const vs=this.font.variantsFor(cp);
-    if(vs.length) return {gid:vs[0].gid, recipe:{op:"variant-ivs", vs:vs[0].vs}};
-    return null;
+    const cands=[];
+    for(const oldCP of this.font.oldFormCodepoints(cp)){ const g=this.font.cmapMap.get(oldCP); if(g!=null) cands.push({gid:g, recipe:{op:"variant-oldcp", oldCP}}); }
+    for(const v of this.font.variantsFor(cp)){ cands.push({gid:v.gid, recipe:{op:"variant-ivs", vs:v.vs}}); }
+    if(!cands.length) return null;
+    if(cands.length>1 || TTFFont.NEW_TO_OLD_MULTI[cp]) return {ambiguous:true};
+    return cands[0];
   }
 
   onDonorClick(e){
@@ -1303,14 +1441,16 @@ class App{
     else if(e.key==="r"||e.key==="R"){ this.setTool("rotate"); }
     else if(e.key==="a"||e.key==="A"){ this.setTool("addcorner"); }
     else if(e.key==="s"||e.key==="S"){ this.setTool("addcurve"); }
+    else if(e.key==="k"||e.key==="K"){ this.setTool("scissors"); }
     else if(e.key==="c"||e.key==="C"){ this.editor.toggleCurvePoint(); }
     else if(e.key==="["){ this.editor.rotateBy(e.shiftKey?15:1); }
     else if(e.key==="]"){ this.editor.rotateBy(e.shiftKey?-15:-1); }
   }
   setTool(t){
     this.editor.tool=t;
+    this.editor._cutA=null; this.editor._cutCursor=null;
     if(t==="transform" && !this.editor.hasSelection() && this.editor.contours.length) this.editor.selectAllPoints();
-    for(const [id,name] of [["toolSelect","select"],["toolTransform","transform"],["toolRotate","rotate"],["toolAddCorner","addcorner"],["toolAddCurve","addcurve"],["toolPan","pan"]])
+    for(const [id,name] of [["toolSelect","select"],["toolTransform","transform"],["toolRotate","rotate"],["toolAddCorner","addcorner"],["toolAddCurve","addcurve"],["toolScissors","scissors"],["toolPan","pan"]])
       this.$(id).classList.toggle("on",t===name);
     this.editor.draw();
   }
@@ -1399,11 +1539,11 @@ class App{
     if(!this.font || this.targetGid<0){ block.style.display="none"; return; }
     const cp=this.targetChar.codePointAt(0);
     const list=[];
-    const oldCP=this.font.oldFormCodepoint(cp);
-    if(oldCP){ const g=this.font.cmapMap.get(oldCP); list.push({gid:g, ch:String.fromCodePoint(oldCP), tag:"旧字体 U+"+oldCP.toString(16).toUpperCase(), recipe:{op:"variant-oldcp", oldCP}}); }
+    for(const oldCP of this.font.oldFormCodepoints(cp)){ const g=this.font.cmapMap.get(oldCP); list.push({gid:g, ch:String.fromCodePoint(oldCP), tag:"旧字体 U+"+oldCP.toString(16).toUpperCase(), recipe:{op:"variant-oldcp", oldCP}}); }
     for(const v of this.font.variantsFor(cp)){ list.push({gid:v.gid, ch:this.targetChar, tag:"異体字 "+this._vsLabel(v.vs), recipe:{op:"variant-ivs", vs:v.vs}}); }
     if(!list.length){ block.style.display="none"; return; }
     block.style.display="";
+    if(list.length>1){ const note=document.createElement("p"); note.className="hint"; note.style.margin="0 0 8px"; note.textContent=`候補が ${list.length} 件あります。字形を見て選んでください。`; grid.appendChild(note); }
     for(const c of list){
       const row=document.createElement("div"); row.className="cand";
       const cv=document.createElement("canvas"); cv.width=52; cv.height=52;
@@ -1445,6 +1585,39 @@ class App{
     this.donorContours=this.font._rawContours(gid,0); this.donorSel=new Set();
     this.drawDonor(); this.renderDonorContours();
     this.$("copyParts").disabled=true; this.$("replaceWhole").disabled=this.targetGid<0;
+  }
+  detectFontStyle(){
+    const s=((this.fontName||"")).toLowerCase();
+    if(/noto.*sans|sans.*jp|sansjp/.test(s)) return "Noto Sans JP系（ゴシック系）";
+    if(/noto.*serif|serif.*jp/.test(s)) return "Noto Serif系（明朝系）";
+    if(/mincho|明朝|serif|song|ming/.test(s)) return "明朝系";
+    if(/gothic|ゴシック|sans|maru|round/.test(s)) return "ゴシック系";
+    return "系統不明（部品は読み込んだフォントの字形で表示）";
+  }
+  openParts(){
+    if(!this.font){ this.banner("fontBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    this.$("partsStyle").innerHTML=`このフォント：<b>${this.detectFontStyle()}</b> ／ 部品は同じ字形で表示されます`;
+    this.$("partsNote").textContent=USER_SETTINGS.parts.note;
+    const body=this.$("partsBody"); body.innerHTML="";
+    for(const g of USER_SETTINGS.parts.groups){
+      const present=[...g.chars].filter(ch=>this.font.cmapMap.has(ch.codePointAt(0)));
+      if(!present.length) continue;
+      const gh=document.createElement("div"); gh.className="parts-group-title"; gh.textContent=g.name; body.appendChild(gh);
+      const grid=document.createElement("div"); grid.className="parts-grid";
+      for(const ch of present){
+        const gid=this.font.cmapMap.get(ch.codePointAt(0));
+        const it=document.createElement("button"); it.className="part-item"; it.title=ch;
+        const cv=document.createElement("canvas"); cv.width=48; cv.height=48;
+        const lab=document.createElement("span"); lab.className="pch"; lab.textContent=ch;
+        it.appendChild(cv); it.appendChild(lab);
+        it.onclick=()=>{ this.borrowGid(gid, ch); this.$("partsOverlay").classList.remove("show"); };
+        grid.appendChild(it);
+        this.drawGlyphMini(cv, this.font._rawContours(gid,0));
+      }
+      body.appendChild(grid);
+    }
+    if(!body.children.length){ body.innerHTML=`<p class="hint">このフォントには収録されている部品候補が見つかりませんでした。</p>`; }
+    this.$("partsOverlay").classList.add("show");
   }
   openDonor(){
     if(!this.font){ this.banner("targetBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
