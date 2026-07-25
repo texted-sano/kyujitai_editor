@@ -328,6 +328,10 @@ a.link:hover{text-decoration:underline}
           <button class="btn accent" id="exportBtn" disabled>TTFを書き出す</button>
           <div id="exportBanner"></div>
           <p class="hint" style="margin-top:8px">編集した字だけを差し替え、他のグリフ・cmap・IVSは元のまま温存します（A方式）。</p>
+          <div class="divider" style="margin:12px 0"></div>
+          <button class="btn ghost" id="exportGaijiBtn" disabled>外字ファイルを書き出す（.tte）</button>
+          <div id="gaijiBanner"></div>
+          <p class="hint" style="margin-top:8px">編集した字を U+E000 から順に私用領域(PUA)へ割り当て、Windows外字(EUDC)用の .tte を作成します。使用側でIMEへの外字登録／EUDC登録が必要です。正規Unicodeを持つ旧字体の配布には通常のTTF書き出しを使ってください。</p>
         </div>
 
         <div class="block">
@@ -414,8 +418,21 @@ const USER_SETTINGS = {
   },
   head:{ checkSumAdjustmentOffset:8, indexToLocFormatOffset:50 },
   maxp:{ maxPointsOffset:6, maxContoursOffset:8 },
-  magic:{ sfntChecksum:0xB1B0AFBA }
+  magic:{ sfntChecksum:0xB1B0AFBA },
+  gaiji:{
+    puaStart:0xE000, puaEnd:0xE0FF,
+    needFont:"先にフォントを開いてください。",
+    noEdit:"外字にする編集済みの文字がありません。",
+    full:"外字スロット(U+E000–U+E0FF)が満杯です。256字までにしてください。",
+    okSelf:(name,n)=>`外字ファイルを書き出しました：${name}（${n} 字）`,
+    selfFail:"外字ファイルの自己検証に失敗しました。書き出しを中止しました。"
+  }
 };
+
+/* =========================================================================
+   GAIJI BASE FONT (PUA U+E000–U+E0FF, cp932 flag, independent name)
+========================================================================= */
+const GAIJI_BASE64 = "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";
 
 /* =========================================================================
    BINARY READER
@@ -1116,6 +1133,7 @@ class App{
     this.recipes=new Map();
     this.clipboard=null;
     this.worklist=[];
+    this.gaijiMap=new Map();
     this.history=new History(this);
     this.$=(id)=>document.getElementById(id);
     this.editor=new Editor(this.$("stage"), this.$("hud"), this);
@@ -1135,6 +1153,7 @@ class App{
     this.$("copyParts").onclick=()=>this.copyParts();
     this.$("replaceWhole").onclick=()=>this.replaceWhole();
     this.$("exportBtn").onclick=()=>this.doExport();
+    this.$("exportGaijiBtn").onclick=()=>this.doExportGaiji();
     this.$("btnFit").onclick=()=>this.editor.fit();
     this.$("toolSelect").onclick=()=>this.setTool("select");
     this.$("toolTransform").onclick=()=>this.setTool("transform");
@@ -1314,16 +1333,17 @@ class App{
       const buf=await file.arrayBuffer();
       this.font=new TTFFont(buf);
       this.fontName=file.name;
-      this.recipes=new Map(); this.history.reset(); this.worklist=[];
+      this.recipes=new Map(); this.history.reset(); this.worklist=[]; this.gaijiMap=new Map();
       this.$("fileState").textContent=file.name;
       let msg=`<div class="banner ok" style="margin-top:10px">${USER_SETTINGS.strings.fontOk(file.name,this.font.numGlyphs)}</div>`;
       if(this.font.isVariable) msg+=`<div class="banner warn" style="margin-top:8px">${USER_SETTINGS.strings.variableWarn}</div>`;
       this.$("fontBanner").innerHTML=msg;
       this.$("exportBtn").disabled=false;
+      this.$("exportGaijiBtn").disabled=false;
       this.editor.clear();
       if(this.targetChar) this.openTarget(); else this.updateCandidates();
     }catch(err){
-      this.font=null; this.$("exportBtn").disabled=true;
+      this.font=null; this.$("exportBtn").disabled=true; this.$("exportGaijiBtn").disabled=true;
       const S=USER_SETTINGS.strings;
       const map={CFF:S.unsupportedCFF,TTC:S.unsupportedTTC,NOGLYF:S.noGlyf};
       this.banner("fontBanner","err", map[err&&err.code] || S.parseFail);
@@ -1540,12 +1560,80 @@ class App{
     }catch(e){ return false; }
   }
 
+  // GAIJI (.tte) EXPORT
+  _gaijiBaseBuffer(){
+    const bin=atob(GAIJI_BASE64); const u8=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+    return u8.buffer;
+  }
+  _syncGaijiMap(){
+    const isEdited=(cp)=>{ const g=this.font.cmapMap.get(cp); return g!=null && this.font.editedGlyphs.has(g); };
+    const editedCps=this.worklist.filter(isEdited);
+    const editedSet=new Set(editedCps);
+    for(const cp of [...this.gaijiMap.keys()]) if(!editedSet.has(cp)) this.gaijiMap.delete(cp);
+    const used=new Set(this.gaijiMap.values());
+    const {puaStart,puaEnd}=USER_SETTINGS.gaiji;
+    for(const cp of editedCps){
+      if(this.gaijiMap.has(cp)) continue;
+      let slot=puaStart; while(used.has(slot)&&slot<=puaEnd) slot++;
+      if(slot>puaEnd) return false;
+      used.add(slot); this.gaijiMap.set(cp,slot);
+    }
+    return true;
+  }
+  _scaleContours(cs,k){
+    if(k===1) return cs.map(c=>c.map(p=>({x:p.x,y:p.y,on:p.on})));
+    return cs.map(c=>c.map(p=>({x:Math.round(p.x*k),y:Math.round(p.y*k),on:p.on})));
+  }
+  _selfCheckOn(srcFont,buf){
+    try{
+      const f2=new TTFFont(buf.buffer.slice(buf.byteOffset,buf.byteOffset+buf.byteLength));
+      if(f2.numGlyphs!==srcFont.numGlyphs) return false;
+      for(const gid of srcFont.editedGlyphs.keys()){
+        const expected=srcFont.editedGlyphs.get(gid);
+        const got=f2._rawContours(gid,0);
+        if(got.length!==expected.length) return false;
+      }
+      return true;
+    }catch(e){ return false; }
+  }
+  doExportGaiji(){
+    const G=USER_SETTINGS.gaiji;
+    if(!this.font){ this.banner("gaijiBanner","warn",G.needFont); return; }
+    if(this.font.editedGlyphs.size===0){ this.banner("gaijiBanner","warn",G.noEdit); return; }
+    if(!this._syncGaijiMap()){ this.banner("gaijiBanner","err",G.full); return; }
+    let gf;
+    try{ gf=new TTFFont(this._gaijiBaseBuffer()); }
+    catch(e){ this.banner("gaijiBanner","err","外字ベースの読込に失敗しました。"); return; }
+    const k=gf.unitsPerEm/this.font.unitsPerEm;
+    let n=0;
+    for(const [cp,pua] of this.gaijiMap){
+      const srcGid=this.font.cmapMap.get(cp); if(srcGid==null) continue;
+      const cs=this.font.editedGlyphs.get(srcGid); if(!cs) continue;
+      const puaGid=gf.cmapMap.get(pua); if(puaGid==null) continue;
+      gf.setEdited(puaGid, this._scaleContours(cs,k)); n++;
+    }
+    if(!n){ this.banner("gaijiBanner","warn",G.noEdit); return; }
+    let out;
+    try{ out=gf.export(); }
+    catch(e){ this.banner("gaijiBanner","err","外字書き出しでエラー: "+(e&&e.message||e)); return; }
+    if(!this._selfCheckOn(gf,out)){ this.banner("gaijiBanner","err",G.selfFail); return; }
+    const base=(this.fontName||"font").replace(/\.[^.]+$/,"");
+    const outName=base+"-Gaiji.tte";
+    const blob=new Blob([out],{type:"application/octet-stream"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download=outName; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+    this.banner("gaijiBanner","ok",G.okSelf(outName,n));
+  }
+
   saveProject(){
     if(!this.font){ return; }
-    const data={ version:2, font:this.fontName||"", unitsPerEm:this.font.unitsPerEm, glyphs:{}, recipes:{} };
+    const data={ version:2, font:this.fontName||"", unitsPerEm:this.font.unitsPerEm, glyphs:{}, recipes:{}, gaijiMap:{} };
     const rev=new Map(); for(const [cp,g] of this.font.cmapMap){ if(this.font.editedGlyphs.has(g)&&!rev.has(g)) rev.set(g,cp); }
     for(const [gid,cs] of this.font.editedGlyphs){ const cp=rev.get(gid); const key=cp!=null?("u"+cp):("g"+gid); data.glyphs[key]=cs; }
     for(const [gid,r] of this.recipes){ const cp=rev.get(gid); if(cp!=null) data.recipes["u"+cp]=r; }
+    this._syncGaijiMap();
+    for(const [cp,pua] of this.gaijiMap) data.gaijiMap["u"+cp]=pua.toString(16).toUpperCase();
     const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
     const url=URL.createObjectURL(blob); const a=document.createElement("a");
     a.href=url; a.download=(this.fontName||"kyujitai").replace(/\.[^.]+$/,"")+"-work.json"; a.click();
@@ -1563,6 +1651,7 @@ class App{
         if(gid>=0){ this.font.setEdited(gid, data.glyphs[key]); applied++; if(cp!=null) this.addToWorklist(cp); }
       }
       if(data.recipes){ for(const key in data.recipes){ if(key[0]==="u"){ const cp=parseInt(key.slice(1),10); const gid=this.font.cmapMap.get(cp); if(gid!=null) this.recipes.set(gid,data.recipes[key]); } } }
+      if(data.gaijiMap){ this.gaijiMap=new Map(); for(const key in data.gaijiMap){ if(key[0]==="u"){ const cp=parseInt(key.slice(1),10); const pua=parseInt(data.gaijiMap[key],16); if(!isNaN(cp)&&!isNaN(pua)) this.gaijiMap.set(cp,pua); } } }
       this.history.reset();
       this.refreshEdited();
       this.banner("fontBanner","ok",`作業を読み込みました（${applied} 字を復元）`);
