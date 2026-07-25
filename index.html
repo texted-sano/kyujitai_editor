@@ -416,6 +416,14 @@ const USER_SETTINGS = {
     pointHitRadius:9, minZoom:0.05, maxZoom:6, zoomStep:1.12,
     marginRatio:0.16, pointDrawRadius:3.4, arrowNudge:1, arrowNudgeFast:10
   },
+  grid:{
+    niceSteps:[10,20,25,50,100,200,250,500,1000,2000,2500,5000,10000],
+    minPx:22, majorEvery:5,
+    minorColor:"rgba(120,140,180,.07)", majorColor:"rgba(120,140,180,.18)",
+    axisColor:"rgba(120,140,180,.55)", boxColor:"#3a445c",
+    advanceColor:"rgba(242,182,87,.45)", labelColor:"rgba(154,166,189,.6)",
+    labelFont:'10px Consolas,"SFMono-Regular",monospace'
+  },
   head:{ checkSumAdjustmentOffset:8, indexToLocFormatOffset:50 },
   maxp:{ maxPointsOffset:6, maxContoursOffset:8 },
   magic:{ sfntChecksum:0xB1B0AFBA },
@@ -835,16 +843,33 @@ class Editor{
     const ctx=this.ctx;
     ctx.fillStyle="#0d1017"; ctx.fillRect(0,0,w,h);
     if(!this.upm) return;
-    ctx.lineWidth=1; ctx.strokeStyle="#242c3c";
+    const G=USER_SETTINGS.grid;
+    let step=G.niceSteps[G.niceSteps.length-1];
+    for(const s of G.niceSteps){ if(s*this.scale>=G.minPx){ step=s; break; } }
+    const major=step*G.majorEvery;
+    const [fxL,fyT]=this.toFont(0,0); const [fxR,fyB]=this.toFont(w,h);
+    const xMin=Math.min(fxL,fxR), xMax=Math.max(fxL,fxR);
+    const yMin=Math.min(fyT,fyB), yMax=Math.max(fyT,fyB);
+    ctx.lineWidth=1;
+    const vLine=(x,color)=>{ const [sx]=this.toScreen(x,0); ctx.strokeStyle=color; ctx.beginPath(); ctx.moveTo(sx,0); ctx.lineTo(sx,h); ctx.stroke(); };
+    const hLine=(y,color)=>{ const [,sy]=this.toScreen(0,y); ctx.strokeStyle=color; ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(w,sy); ctx.stroke(); };
+    for(let x=Math.ceil(xMin/step)*step; x<=xMax; x+=step){ if(x%major!==0) vLine(x,G.minorColor); }
+    for(let y=Math.ceil(yMin/step)*step; y<=yMax; y+=step){ if(y%major!==0) hLine(y,G.minorColor); }
+    for(let x=Math.ceil(xMin/major)*major; x<=xMax; x+=major){ vLine(x,G.majorColor); }
+    for(let y=Math.ceil(yMin/major)*major; y<=yMax; y+=major){ hLine(y,G.majorColor); }
+    const [bx0,by0]=this.toScreen(0,0);
+    ctx.fillStyle=G.labelColor; ctx.font=G.labelFont; ctx.textBaseline="alphabetic";
+    const lx=Math.min(Math.max(bx0+3,2),w-36);
+    for(let y=Math.ceil(yMin/major)*major; y<=yMax; y+=major){ const [,sy]=this.toScreen(0,y); ctx.fillText(String(y), lx, sy-2); }
+    const ly=Math.min(Math.max(by0-3,11),h-2);
+    for(let x=Math.ceil(xMin/major)*major; x<=xMax; x+=major){ const [sx]=this.toScreen(x,0); ctx.fillText(String(x), sx+2, ly); }
     const [x0,y0]=this.toScreen(0,0); const [x1,y1]=this.toScreen(this.upm,this.upm);
+    ctx.strokeStyle=G.boxColor; ctx.lineWidth=1;
     ctx.strokeRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0));
-    ctx.strokeStyle="#3a445c";
-    ctx.beginPath(); ctx.moveTo(0,y0); ctx.lineTo(w,y0); ctx.stroke();
+    hLine(0,G.axisColor); vLine(0,G.axisColor);
     const [ax]=this.toScreen(this.advance,0);
-    ctx.strokeStyle="rgba(242,182,87,.4)"; ctx.setLineDash([4,4]);
+    ctx.strokeStyle=G.advanceColor; ctx.setLineDash([4,4]);
     ctx.beginPath(); ctx.moveTo(ax,0); ctx.lineTo(ax,h); ctx.stroke(); ctx.setLineDash([]);
-    ctx.strokeStyle="rgba(58,68,92,.5)";
-    ctx.beginPath(); ctx.moveTo(x0,0); ctx.lineTo(x0,h); ctx.stroke();
   }
   _drawOutline(contours, stroke, fill, pts){
     const ctx=this.ctx; ctx.beginPath();
@@ -1366,6 +1391,7 @@ class App{
     const contours=this.font.glyphContours(gid); const orig=this.font._rawContours(gid,0);
     this.editor.setGlyph(contours, orig, this.font.advanceWidth(gid), this.font.unitsPerEm);
     this.setTool("select"); this.updateCandidates(); this.refreshEdited(); this.syncPanels();
+    this.$("targetInput").value="";
   }
   updateCandidates(){
     const grid=this.$("candGrid"); const block=this.$("candBlock");
