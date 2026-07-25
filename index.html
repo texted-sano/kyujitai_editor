@@ -178,6 +178,44 @@ i.dot.todo{background:var(--ink-faint)}
 .modal p{color:var(--ink-dim);font-size:13px;margin:8px 0}
 .modal .code{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink-dim);white-space:pre-wrap;margin:12px 0}
 
+/* ===== HELP (large tabbed) modal ===== */
+.modal.help-modal{
+  max-width:none;width:60vw;min-width:560px;height:62vh;min-height:440px;
+  padding:0;display:flex;flex-direction:column;overflow:hidden
+}
+@media (max-width:900px){ .modal.help-modal{width:92vw;min-width:0;height:80vh} }
+.help-head{display:flex;align-items:center;gap:14px;padding:18px 26px 0;flex:none}
+.help-head h2{margin:0;font-size:20px;letter-spacing:.01em}
+.help-head .hspacer{flex:1}
+.help-x{width:34px;height:34px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink-dim);border-radius:8px;font-size:18px;display:grid;place-items:center}
+.help-x:hover{color:var(--ink);border-color:var(--edit)}
+.help-tabs{display:flex;gap:8px;padding:14px 26px 0;flex:none}
+.help-tab{
+  appearance:none;border:1px solid var(--line);border-bottom:none;background:var(--panel-2);color:var(--ink-dim);
+  padding:11px 20px;border-radius:10px 10px 0 0;font-size:14px;font-family:var(--ui);cursor:pointer;transition:.12s
+}
+.help-tab:hover{color:var(--ink)}
+.help-tab.on{color:var(--edit);border-color:var(--line);background:var(--panel);position:relative;top:1px;font-weight:600}
+.help-body{flex:1;min-height:0;overflow:auto;border-top:1px solid var(--line);padding:22px 26px 26px;background:var(--panel)}
+.help-panel{display:none;animation:helpfade .18s ease}
+.help-panel.on{display:block}
+@keyframes helpfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.help-panel h3{margin:0 0 10px;font-size:14px;color:var(--edit);letter-spacing:.02em}
+.help-panel h3.donor-h{color:var(--donor)}
+.help-sec{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:0 0 16px}
+.help-sec:last-child{margin-bottom:0}
+.help-panel p{color:var(--ink-dim);font-size:13.5px;line-height:1.75;margin:8px 0}
+.help-panel p:first-of-type{margin-top:0}
+.flow-steps{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:2px 0}
+.flow-steps .step{display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--ink)}
+.flow-steps .step b{color:var(--edit)}
+.flow-steps .arr{color:var(--ink-faint)}
+.help-panel .keys{gap:8px 14px}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--donor);color:#2c1e00;font-weight:700;font-size:12px;margin-right:8px;flex:none}
+.checklist{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.checklist span{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ink-dim)}
+.checklist span::before{content:"☐";color:var(--donor);font-size:15px;line-height:1.3}
+
 .kbd{font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;color:var(--ink-dim)}
 .keys{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;color:var(--ink-faint);align-items:center}
 .keys span{display:inline-flex;gap:5px;align-items:center}
@@ -214,7 +252,8 @@ a.link:hover{text-decoration:underline}
     <span class="count-pill" id="countPill">編集 0 字</span>
     <input type="file" id="fileInput" accept=".ttf,.ttc" hidden>
     <button class="btn ghost" id="loadBtn" style="width:auto">フォントを開く</button>
-    <button class="btn ghost" id="helpBtn" style="width:auto">?</button>
+    <button class="btn donor" id="bulkConvert" style="width:auto">未編集を旧字体へ一括変換</button>
+    <button class="btn ghost" id="helpBtn" style="width:auto">ヘルプ</button>
   </header>
 
   <!-- ===== RIBBON ===== -->
@@ -276,7 +315,6 @@ a.link:hover{text-decoration:underline}
             <small>または「フォントを開く」。Noto Sans JP / 明朝 / ゴシック等の .ttf（TrueType輪郭）</small>
           </div>
           <div id="fontBanner"></div>
-          <button class="btn ghost" id="ffBtn" style="margin-top:8px">🛠 OTF→TTF変換ガイド（配布前準備）</button>
         </div>
 
         <div class="block">
@@ -291,7 +329,6 @@ a.link:hover{text-decoration:underline}
 
         <div class="block" id="editedBlock">
           <h3>編集リスト</h3>
-          <button class="btn donor" id="bulkConvert">未編集を旧字体へ一括変換</button>
           <div id="bulkBanner"></div>
           <div class="list-legend"><span><i class="dot done"></i>編集済み</span><span><i class="dot todo"></i>未編集</span></div>
           <div class="edited-list" id="editedList"><div class="empty">「対象の文字」で漢字を入力して開くと、ここに並びます</div></div>
@@ -365,37 +402,122 @@ a.link:hover{text-decoration:underline}
 
 <!-- ===== HELP MODAL ===== -->
 <div class="overlay" id="helpOverlay">
-  <div class="modal">
-    <h2>使い方</h2>
-    <p><b>①</b> TTFを開く → <b>②</b> 対象の文字（新字体）を開く → <b>③</b> ドナー文字を表示 → <b>④</b> 輪郭を選んでコピー、または丸ごと置換 → 位置を合わせる → <b>⑤</b> 書き出す。</p>
-    <div class="divider"></div>
-    <p style="margin-top:12px"><b>アウトライン編集（点ベース）</b></p>
-    <div class="keys">
-      <span><span class="kbd">クリック</span> 点/辺/内側を選択</span>
-      <span><span class="kbd">空きをドラッグ</span> 範囲選択</span>
-      <span><span class="kbd">Shift+クリック</span> 追加選択</span>
-      <span><span class="kbd">辺をドラッグ</span> 両端の点ごと移動</span>
-      <span><span class="kbd">Ctrl+A</span> 全点選択</span>
-      <span><span class="kbd">← ↑ → ↓</span> 選択点を移動（Shiftで10）</span>
-      <span><span class="kbd">Delete</span> 選択点を削除</span>
-      <span><span class="kbd">C</span> 選択点を 直線↔曲線</span>
-      <span><span class="kbd">Ctrl+C / Ctrl+V</span> 点をコピー／貼付（切り抜き）</span>
-      <span><span class="kbd">Ctrl+Z / Ctrl+Shift+Z</span> 戻す／やり直し</span>
+  <div class="modal help-modal">
+    <div class="help-head">
+      <h2>ヘルプ</h2>
+      <div class="hspacer"></div>
+      <button class="help-x" id="helpClose" title="閉じる（モーダル外クリックでも閉じます）">✕</button>
     </div>
-    <p style="margin-top:10px"><b>道具</b> <span class="kbd">V</span>選択 <span class="kbd">T</span>自由変形 <span class="kbd">R</span>回転 <span class="kbd">A</span>角点追加 <span class="kbd">S</span>曲線点追加 <span class="kbd">K</span>はさみ <span class="kbd">Space</span>画面移動 <span class="kbd">[ ]</span>回転(Shiftで15°)</p>
-    <p style="margin-top:8px"><b>はさみ</b>：輪郭上の2点をクリックすると、その2点で1つの閉じた輪郭を2つに分割します（長い四角→2つの四角、対角の2点→2つの三角）。角にスナップし、辺の途中でも切れます。同じ辺だけ・同じ点は分割できません。</p>
-    <p><b>部品パレット</b>：右カラム「3. ドナー」の「部品パレットから選ぶ」で、旧字体作成によく使う偏旁・要素を一覧から選べます。字形は読み込んだフォントから採るので、明朝／ゴシック等に自動で揃います。選ぶとドナー欄に入り、輪郭を選んでコピーできます。</p>
-    <div class="divider" style="margin-top:14px"></div>
-    <p style="margin-top:12px"><b>切り抜き（例：車の中の田だけ欲しい）</b>：範囲選択などで田を構成する点を選び <span class="kbd">Ctrl+C</span>。対象の文字を開いて <span class="kbd">Ctrl+V</span>。選んだ点は輪郭として閉じられ、切り出した形が貼り付きます。</p>
-    <p><b>自由変形</b>：Tで変形ツール。選択（なければ全体）に枠が出るので、角ハンドルで縦横同時、辺ハンドルで片方向、Shiftで等比拡大縮小。※太さも一緒に拡縮されます（線幅一定の変形はしません）。</p>
-    <p><b>作業履歴JSON</b> は画面のどこにでもドラッグ＆ドロップで読み込めます。</p>
-    <div class="divider" style="margin-top:14px"></div>
-    <p style="margin-top:12px"><b>旧字体候補</b>：対象文字に、フォント内の旧字体・異体字（別コード or IVS）があれば右上に表示。「置換」で一発、「借用」で部品取りに使えます。</p>
-    <p><b>別フォントへ流用</b>：作成後に「作業を保存」でjson化。別の明朝/ゴシックを開いて「別フォントへ履歴を流用」を押すと、旧字体化した文字を新フォント側の字形で自動的に作り直します（外見はコピーせず、操作＝レシピを再生）。手作業で点を動かした字は「要確認」として案内します。</p>
-    <div class="divider" style="margin-top:14px"></div>
-    <p style="margin-top:12px"><b>対応フォント</b>：TrueType輪郭（glyf）の .ttf。游明朝/游ゴシック/IPAex/Noto Sans JP(static) 等。CFF形式(.otf/Noto Sans CJK) は非対応。可変フォント(VF)は既定インスタンスにのみ適用（静的化推奨）。</p>
-    <p><b>書き出し後は必ず</b> FontForge か Windows で開いて表示を確認してください（本ツールは書き出し直後に内部で自己検証も行います）。</p>
-    <button class="btn" id="helpClose" style="margin-top:14px">閉じる</button>
+    <div class="help-tabs">
+      <button class="help-tab on" data-tab="use">使い方</button>
+      <button class="help-tab" data-tab="ff">OTF⇒TTF変換案内</button>
+    </div>
+    <div class="help-body">
+
+      <!-- ===== 使い方 ===== -->
+      <div class="help-panel on" id="helpPanel-use">
+        <div class="help-sec">
+          <h3>基本の流れ</h3>
+          <div class="flow-steps">
+            <span class="step"><b>①</b> TTFを開く</span><span class="arr">→</span>
+            <span class="step"><b>②</b> 対象の文字を開く</span><span class="arr">→</span>
+            <span class="step"><b>③</b> ドナー／部品を表示</span><span class="arr">→</span>
+            <span class="step"><b>④</b> 輪郭をコピー／丸ごと置換</span><span class="arr">→</span>
+            <span class="step"><b>⑤</b> 位置合わせ</span><span class="arr">→</span>
+            <span class="step"><b>⑥</b> 書き出す</span>
+          </div>
+        </div>
+
+        <div class="help-sec">
+          <h3>旧字体候補・一括変換・部品パレット</h3>
+          <p><b>旧字体候補</b>：対象文字に旧字体・異体字（別コード or IVS）があれば右上に一覧表示。複数あるときは字形を見て選べます。「置換」で丸ごと、「借用」で部品取りに使えます。</p>
+          <p><b>一括変換</b>（上部の橙ボタン「未編集を旧字体へ一括変換」）：未編集の字を候補で自動変換します。候補が複数ある字や文脈依存の字（弁＝辨/瓣/辯、余、予 など）は自動変換せず、右の候補一覧から手動で選ぶ運用です。</p>
+          <p><b>部品パレット</b>：右カラム「3. ドナー」の「部品パレットから選ぶ」で、旧字体作成によく使う偏旁・要素を一覧から選べます。字形は読み込んだフォントから採るので、明朝／ゴシック等に自動で揃います。</p>
+        </div>
+
+        <div class="help-sec">
+          <h3>アウトライン編集（点・辺・選択）</h3>
+          <div class="keys">
+            <span><span class="kbd">クリック</span> 点/辺/内側を選択</span>
+            <span><span class="kbd">空きをドラッグ</span> 範囲選択</span>
+            <span><span class="kbd">Shift+クリック</span> 追加選択</span>
+            <span><span class="kbd">辺をドラッグ</span> 両端の点ごと移動</span>
+            <span><span class="kbd">Ctrl+A</span> 全点選択</span>
+            <span><span class="kbd">← ↑ → ↓</span> 選択点を移動（Shiftで10）</span>
+            <span><span class="kbd">Delete</span> 選択点を削除</span>
+            <span><span class="kbd">C</span> 選択点を 直線↔曲線</span>
+            <span><span class="kbd">Ctrl+C / Ctrl+V</span> 点をコピー／貼付（切り抜き）</span>
+            <span><span class="kbd">Ctrl+Z / Ctrl+Shift+Z</span> 戻す／やり直し</span>
+          </div>
+        </div>
+
+        <div class="help-sec">
+          <h3>道具（ショートカット）</h3>
+          <p><span class="kbd">V</span>選択　<span class="kbd">T</span>自由変形　<span class="kbd">R</span>回転　<span class="kbd">A</span>角点追加　<span class="kbd">S</span>曲線点追加　<span class="kbd">K</span>はさみ　<span class="kbd">Space</span>画面移動　<span class="kbd">[ ]</span>回転(Shiftで15°)　<span class="kbd">F</span>全体表示</p>
+        </div>
+
+        <div class="help-sec">
+          <h3>はさみ・自由変形・切り抜き</h3>
+          <p><b>はさみ（K）</b>：輪郭上の2点をクリックすると、その2点で1つの閉じた輪郭を2つに分割します（長い四角→2つの四角、対角の2点→2つの三角）。角にスナップし、辺の途中でも切れます。同じ辺だけ・同じ点は分割できません。</p>
+          <p><b>自由変形（T）</b>：選択（なければ全体）に枠が出ます。角ハンドルで縦横同時、辺ハンドルで片方向、Shiftで等比拡大縮小。※太さも一緒に拡縮されます（線幅一定の変形はしません）。</p>
+          <p><b>切り抜き</b>（例：車の中の田だけ欲しい）：範囲選択で田を構成する点を選び <span class="kbd">Ctrl+C</span>。対象の文字を開いて <span class="kbd">Ctrl+V</span>。選んだ点が輪郭として閉じ、切り出した形が貼り付きます。</p>
+        </div>
+
+        <div class="help-sec">
+          <h3>作業ファイル・別フォントへ流用</h3>
+          <p><b>作業を保存</b>で作業JSONを書き出せます（画面のどこにでもドラッグ＆ドロップで読み込み可）。</p>
+          <p><b>別フォントへ流用</b>：別の明朝／ゴシックを開いた状態で実行すると、旧字体化を新フォント側の字形で自動的に作り直します（外見をコピーするのではなく、操作＝レシピを再生）。手作業で点を動かした字は「要確認」として案内します。</p>
+        </div>
+
+        <div class="help-sec">
+          <h3>対応フォントと確認</h3>
+          <p>TrueType輪郭（glyf）の <b>.ttf</b> に対応（游明朝／游ゴシック／IPAex／Noto Sans JP static 等）。<b>CFF形式（.otf / Noto Sans CJK）は非対応</b>。可変フォント（VF）は既定インスタンスにのみ適用（静的化推奨）。</p>
+          <p>書き出し後は FontForge か Windows で開いて表示を確認してください（本ツールも書き出し直後に内部で自己検証します）。配布用に整える手順は「OTF⇒TTF変換案内」タブを参照。</p>
+        </div>
+      </div>
+
+      <!-- ===== OTF⇒TTF変換案内 ===== -->
+      <div class="help-panel" id="helpPanel-ff">
+        <div class="help-sec">
+          <h3 class="donor-h">このガイドの要点</h3>
+          <p>本ツールは <b>編集した glyf だけを差し替え、name / OS/2 / cmap は元のまま温存</b>します（サージカル・エクスポート）。裏を返すと <b>入力TTFの誤りもそのまま残る</b> ため、<u>編集する前に</u> FontForge で「正しいメタデータを持つベースTTF」を作っておくのが要点です。</p>
+        </div>
+
+        <div class="banner warn" style="margin:0 0 16px;padding:14px 16px;line-height:1.7">
+          <b>つまづきポイント</b>：Noto Sans JP など巨大な日中韓OTFをTTFに変換すると、FontForge が「中国語フォント」と誤判定し、OS/2 のコードページを <b>932（日本語）＝OFF ／ 950（繁体字）＝ON</b> にしてしまうことがあります。すると <b>Wordでは使えても PowerPoint で「選べるが適用されない」</b> 症状が出ます。
+        </div>
+
+        <div class="help-sec">
+          <h3 class="donor-h">ステップ1：FontForgeでベースTTFを仕込む</h3>
+          <p><span class="step-num">1</span>大元のOTF（例：Noto Sans JP）を FontForge で開く。</p>
+          <p><span class="step-num">2</span><b>フォント名を完全に独立させる</b>。「エレメント → フォント情報」の <b>「PS Names」</b>と<b>「TTF名」</b>の両方に独自名（例 <span class="kbd">Kyujitai-Regular</span>）を設定。<b>「TTF名」のスタイル（サブファミリー）は必ず <span class="kbd">Regular</span> のみ</b>に（Bold/Light 等が残ると配布先で不具合）。元フォントとの名前衝突・上書きを防ぎます。</p>
+          <p><span class="step-num">3</span><b>日本語フラグを直す</b>。「フォント情報 → OS/2 → 文字セット」で右下「コードページ」一覧を確認し、<b>「932, 日本語」だけ</b>を選択状態に。<b>「950, 繁体字中国語」など日本語以外が選ばれていたら Ctrl+クリックで解除</b>。ここが不具合の根本原因です。</p>
+          <p><span class="step-num">4</span>「ファイル → フォントを出力」で <b>TrueType(TTF)</b> を選び書き出す（例 <span class="kbd">Base_Kyujitai.ttf</span>）。中身は未編集でも、名前と言語フラグは配布用に整った状態になります。</p>
+        </div>
+
+        <div class="help-sec">
+          <h3 class="donor-h">ステップ2：本ツールで編集</h3>
+          <p>元のOTFではなく、<b>ステップ1で作った Base_Kyujitai.ttf を読み込みます</b>。旧字体に編集して「TTFを書き出す」。name / OS/2（1で設定した名前・932フラグ）はそのまま引き継がれます。</p>
+        </div>
+
+        <div class="help-sec">
+          <h3 class="donor-h">ステップ3：配布</h3>
+          <p>書き出したTTFは独自名と932フラグを正しく持つので、Windows/Mac・Word/PowerPoint のいずれでも、インストールするだけで適用されます。</p>
+        </div>
+
+        <div class="help-sec">
+          <h3 class="donor-h">配布前チェックリスト</h3>
+          <div class="checklist">
+            <span>独自フォント名を PS Names / TTF名 の両方に設定したか</span>
+            <span>TTF名のスタイル（サブファミリー）が <span class="kbd">Regular</span> のみか</span>
+            <span>OS/2 文字セットで「932, 日本語」のみ選択か（950等が混在していないか）</span>
+            <span>編集は元OTFでなく「ベースTTF」を使ったか</span>
+            <span>書き出したTTFを Word・PowerPoint 両方で実機テストしたか</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -407,39 +529,6 @@ a.link:hover{text-decoration:underline}
     <p class="hint" id="partsNote" style="margin:0 0 10px"></p>
     <div id="partsBody" style="max-height:60vh;overflow:auto"></div>
     <button class="btn" id="partsClose" style="margin-top:14px">閉じる</button>
-  </div>
-</div>
-
-<!-- ===== FONTFORGE GUIDE MODAL ===== -->
-<div class="overlay" id="ffOverlay">
-  <div class="modal" style="max-width:640px;max-height:86vh;overflow:auto">
-    <h2>OTF→TTF 変換ガイド（配布用ベースTTFの仕込み）</h2>
-    <p>本ツールは <b>編集した glyf だけを差し替え、name / OS/2 / cmap は元のまま温存</b>します（サージカル・エクスポート）。裏を返すと<b>入力TTFの誤りもそのまま残る</b>ため、<u>編集する前に</u> FontForge で「正しいメタデータを持つベースTTF」を作っておくのが要点です。</p>
-
-    <div class="banner warn" style="margin:10px 0">つまづきポイント：Noto Sans JP など巨大な日中韓OTFをTTFに変換すると、FontForge が「中国語フォント」と誤判定し、OS/2 のコードページを <b>932(日本語)=OFF / 950(繁体字)=ON</b> にしてしまうことがあります。すると <b>Wordでは使えてもPowerPointで「選べるが適用されない」</b> 症状が出ます。</p></div>
-
-    <p style="margin-top:12px"><b>ステップ1：FontForgeでベースTTFを仕込む</b></p>
-    <p style="margin:6px 0"><b>1-1.</b> 大元のOTF（例：Noto Sans JP）を FontForge で開く。</p>
-    <p style="margin:6px 0"><b>1-2. フォント名を完全に独立させる</b>。「エレメント → フォント情報」の <b>「PS Names」</b>と<b>「TTF名」</b>の両方に独自名（例 <span class="kbd">Kyujitai-Regular</span>）を設定。<b>「TTF名」のスタイル（サブファミリー）は必ず <span class="kbd">Regular</span> のみ</b>にする（Bold/Light 等が残ると配布先で不具合）。元の名前を残さず独立させ、元フォントとの名前衝突・上書きを防ぐ。</p>
-    <p style="margin:6px 0"><b>1-3. 日本語フラグを直す</b>。「フォント情報 → OS/2 → 文字セット」で右下「コードページ」一覧を確認し、<b>「932, 日本語」だけ</b>を選択状態にする。<b>「950, 繁体字中国語」など日本語以外が選ばれていたら Ctrl+クリックで解除</b>。ここが不具合の根本原因。</p>
-    <p style="margin:6px 0"><b>1-4.</b> 「ファイル → フォントを出力」で <b>TrueType(TTF)</b> を選び書き出す（例 <span class="kbd">Base_Kyujitai.ttf</span>）。中身は未編集でも、名前と言語フラグは配布用に整った状態。</p>
-
-    <p style="margin-top:12px"><b>ステップ2：本ツールで編集</b></p>
-    <p style="margin:6px 0">元のOTFではなく、<b>ステップ1で作った Base_Kyujitai.ttf を読み込む</b>。旧字体に編集して「TTFを書き出す」。name / OS/2（1で設定した名前・932フラグ）はそのまま引き継がれます。</p>
-
-    <p style="margin-top:12px"><b>ステップ3：配布</b></p>
-    <p style="margin:6px 0">書き出したTTFは独自名と932フラグを正しく持つので、Windows/Mac・Word/PowerPoint のいずれでもインストールするだけで適用されます。</p>
-
-    <div class="divider" style="margin:14px 0"></div>
-    <p><b>配布前チェックリスト</b></p>
-    <div class="keys" style="flex-direction:column;align-items:flex-start;gap:6px">
-      <span>☐ 独自フォント名を PS Names / TTF名 の両方に設定したか</span>
-      <span>☐ TTF名のスタイルが <span class="kbd">Regular</span> のみか</span>
-      <span>☐ OS/2 文字セットで「932, 日本語」のみ選択か（950等が混在していないか）</span>
-      <span>☐ 編集は元OTFでなく「ベースTTF」を使ったか</span>
-      <span>☐ 書き出したTTFを Word・PowerPoint 両方で実機テストしたか</span>
-    </div>
-    <button class="btn" id="ffClose" style="margin-top:16px">閉じる</button>
   </div>
 </div>
 
@@ -1319,8 +1408,8 @@ class App{
     this.$("toolPan").onclick=()=>this.setTool("pan");
     this.$("partsBtn").onclick=()=>this.openParts();
     this.$("partsClose").onclick=()=>this.$("partsOverlay").classList.remove("show");
-    this.$("ffBtn").onclick=()=>this.$("ffOverlay").classList.add("show");
-    this.$("ffClose").onclick=()=>this.$("ffOverlay").classList.remove("show");
+    this.$("helpOverlay").querySelectorAll(".help-tab").forEach(b=>{ b.onclick=()=>this.switchHelpTab(b.dataset.tab); });
+    for(const id of ["helpOverlay","partsOverlay"]){ const ov=this.$(id); ov.addEventListener("click",e=>{ if(e.target===ov) ov.classList.remove("show"); }); }
     this.$("btnGuide").onclick=()=>this.toggleGuide();
     this.$("btnUndo").onclick=()=>this.history.doUndo();
     this.$("btnRedo").onclick=()=>this.history.doRedo();
@@ -1331,7 +1420,7 @@ class App{
     this.$("btnFlipV").onclick=()=>this.editor.flip(false);
     this.$("btnCopy").onclick=()=>this.copySelection();
     this.$("btnPaste").onclick=()=>this.paste();
-    this.$("helpBtn").onclick=()=>this.$("helpOverlay").classList.add("show");
+    this.$("helpBtn").onclick=()=>{ this.switchHelpTab("use"); this.$("helpOverlay").classList.add("show"); };
     this.$("helpClose").onclick=()=>this.$("helpOverlay").classList.remove("show");
     this.$("projSave").onclick=()=>this.saveProject();
     this.$("projInput").onchange=(e)=>{ if(e.target.files[0]) this.loadProject(e.target.files[0]); };
@@ -1490,6 +1579,12 @@ class App{
   }
   _cpForGid(gid){ for(const [cp,g] of this.font.cmapMap){ if(g===gid) return cp; } return null; }
   toggleGuide(){ this.editor.showGuide=!this.editor.showGuide; this.$("btnGuide").classList.toggle("on",this.editor.showGuide); this.editor.draw(); }
+  switchHelpTab(tab){
+    const ov=this.$("helpOverlay");
+    ov.querySelectorAll(".help-tab").forEach(b=>b.classList.toggle("on", b.dataset.tab===tab));
+    ov.querySelectorAll(".help-panel").forEach(p=>p.classList.toggle("on", p.id==="helpPanel-"+tab));
+    const body=ov.querySelector(".help-body"); if(body) body.scrollTop=0;
+  }
 
   banner(id,type,msg){ const el=this.$(id); if(!msg){ el.innerHTML=""; return; } el.innerHTML=`<div class="banner ${type}" style="margin-top:10px">${msg}</div>`; }
 
