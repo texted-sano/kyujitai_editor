@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旧字体グリフ・エディタ</title>
+<style>
+:root{
+  --bg:#12151c; --panel:#1a1f2b; --panel-2:#222836; --line:#2e3648;
+  --ink:#e7ecf5; --ink-dim:#9aa6bd; --ink-faint:#5f6b83;
+  --edit:#37d6c3; --edit-soft:rgba(55,214,195,.14);
+  --donor:#f2b657; --donor-soft:rgba(242,182,87,.14);
+  --danger:#f2665a;
+  --grid:#242c3c; --guide:#3a445c;
+  --canvas-bg:#0d1017;
+  --radius:10px;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --ui:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.5}
+button{font-family:var(--ui);cursor:pointer}
+input,button{font-size:14px}
+
+/* ===== LAYOUT ===== */
+.app{display:grid;grid-template-rows:auto 1fr;height:100vh;min-height:0}
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:10px 16px;
+  background:var(--panel);border-bottom:1px solid var(--line)
+}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand .glyph{font-size:20px;font-weight:700;letter-spacing:.02em}
+.brand .glyph b{color:var(--edit)}
+.brand .sub{font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.14em;text-transform:uppercase}
+.topbar .spacer{flex:1}
+.file-state{font-family:var(--mono);font-size:12px;color:var(--ink-dim);max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.main{display:grid;grid-template-columns:270px 1fr 300px;min-height:0}
+@media (max-width:1100px){ .main{grid-template-columns:230px 1fr 260px} }
+@media (max-width:860px){
+  .main{grid-template-columns:1fr;grid-template-rows:auto minmax(320px,1fr) auto;overflow:auto}
+  .col{max-height:none!important}
+}
+.col{background:var(--panel);min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.col.left{border-right:1px solid var(--line)}
+.col.right{border-left:1px solid var(--line)}
+.col .scroll{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:16px}
+
+.stage{background:var(--canvas-bg);position:relative;min-height:0;display:flex;flex-direction:column}
+.stage canvas{flex:1;min-height:0;width:100%;display:block;touch-action:none}
+.stage .hud{
+  position:absolute;left:12px;top:12px;font-family:var(--mono);font-size:11px;
+  color:var(--ink-faint);pointer-events:none;line-height:1.7
+}
+.stage .hud b{color:var(--edit)}
+.stage .toolbar{
+  position:absolute;right:12px;top:12px;display:flex;gap:6px;background:rgba(20,24,32,.7);
+  backdrop-filter:blur(4px);padding:6px;border:1px solid var(--line);border-radius:var(--radius)
+}
+.stage .toolbar button{
+  width:34px;height:34px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink-dim);
+  border-radius:7px;display:grid;place-items:center;font-size:13px
+}
+.stage .toolbar button:hover{color:var(--ink);border-color:var(--edit)}
+.stage .toolbar button.on{color:var(--edit);border-color:var(--edit);background:var(--edit-soft)}
+
+/* ===== BLOCKS ===== */
+.block{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+.block h3{margin:0 0 10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);font-weight:600}
+.hint{font-size:12px;color:var(--ink-faint);margin:0}
+
+.charline{display:flex;gap:8px}
+.charline input{
+  flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);color:var(--ink);
+  border-radius:8px;padding:9px 11px;font-size:20px;text-align:center;font-family:var(--ui)
+}
+.charline input:focus{outline:none;border-color:var(--edit)}
+
+.btn{
+  border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  padding:9px 12px;border-radius:8px;width:100%;text-align:center;transition:.12s
+}
+.btn:hover{border-color:var(--edit);color:#fff}
+.btn.accent{background:var(--edit);border-color:var(--edit);color:#06231f;font-weight:700}
+.btn.accent:hover{filter:brightness(1.08)}
+.btn.donor{background:var(--donor);border-color:var(--donor);color:#2c1e00;font-weight:700}
+.btn.donor:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.4;cursor:not-allowed;border-color:var(--line);color:var(--ink-faint)}
+.btnrow{display:flex;gap:8px}
+.btnrow .btn{width:auto;flex:1}
+
+.mini-canvas{width:100%;aspect-ratio:1;background:var(--canvas-bg);border:1px solid var(--line);border-radius:8px;display:block}
+
+.contours{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.contours .row{
+  display:flex;align-items:center;gap:9px;padding:7px 9px;border:1px solid var(--line);
+  border-radius:7px;background:var(--panel);font-family:var(--mono);font-size:12px;color:var(--ink-dim);cursor:pointer
+}
+.contours .row .dot{width:9px;height:9px;border-radius:50%;background:var(--ink-faint);flex:none}
+.contours .row.sel{border-color:var(--donor);color:var(--ink)}
+.contours .row.sel .dot{background:var(--donor)}
+
+.edited-list{display:flex;flex-direction:column;gap:5px}
+.edited-list .item{
+  display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);
+  border-radius:8px;background:var(--panel);cursor:pointer
+}
+.edited-list .item:hover{border-color:var(--edit)}
+.edited-list .item.active{border-color:var(--edit);background:var(--edit-soft)}
+.edited-list .item .ch{font-size:22px;line-height:1;width:26px;text-align:center}
+.edited-list .item .meta{font-family:var(--mono);font-size:11px;color:var(--ink-faint);flex:1}
+.edited-list .item .rm{color:var(--ink-faint);border:none;background:none;font-size:15px;padding:2px 6px}
+.edited-list .item .rm:hover{color:var(--danger)}
+.empty{font-size:12px;color:var(--ink-faint);text-align:center;padding:16px 8px;border:1px dashed var(--line);border-radius:8px}
+
+.count-pill{font-family:var(--mono);font-size:11px;color:var(--edit);border:1px solid var(--edit);border-radius:999px;padding:2px 9px}
+
+/* ===== DROP / BANNER ===== */
+.dropzone{
+  border:1.5px dashed var(--line);border-radius:var(--radius);padding:22px 14px;text-align:center;
+  color:var(--ink-dim);background:var(--bg);transition:.15s
+}
+.dropzone.hot{border-color:var(--edit);color:var(--ink);background:var(--edit-soft)}
+.dropzone b{color:var(--ink)}
+.dropzone small{display:block;margin-top:6px;color:var(--ink-faint);font-size:11px}
+
+.banner{padding:10px 12px;border-radius:8px;font-size:12.5px;line-height:1.5}
+.banner.warn{background:rgba(242,182,87,.1);border:1px solid var(--donor);color:#f3c982}
+.banner.err{background:rgba(242,102,90,.1);border:1px solid var(--danger);color:#f2938a}
+.banner.ok{background:var(--edit-soft);border:1px solid var(--edit);color:#7ee9dc}
+
+.overlay{
+  position:fixed;inset:0;background:rgba(8,10,14,.72);display:none;place-items:center;z-index:40;padding:20px
+}
+.overlay.show{display:grid}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:520px;width:100%;padding:22px}
+.modal h2{margin:0 0 8px;font-size:17px}
+.modal p{color:var(--ink-dim);font-size:13px;margin:8px 0}
+.modal .code{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink-dim);white-space:pre-wrap;margin:12px 0}
+
+.kbd{font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;color:var(--ink-dim)}
+.keys{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;color:var(--ink-faint);align-items:center}
+.keys span{display:inline-flex;gap:5px;align-items:center}
+a.link{color:var(--edit);text-decoration:none}
+a.link:hover{text-decoration:underline}
+.divider{height:1px;background:var(--line);margin:2px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="glyph">旧<b>字</b>体エディタ</div>
+      <div class="sub">Glyph Surgery / TTF-safe</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="file-state" id="fileState">フォント未読み込み</div>
+    <span class="count-pill" id="countPill">編集 0 字</span>
+    <input type="file" id="fileInput" accept=".ttf,.ttc" hidden>
+    <button class="btn ghost" id="loadBtn" style="width:auto">フォントを開く</button>
+    <button class="btn ghost" id="helpBtn" style="width:auto">?</button>
+  </header>
+
+  <div class="main">
+
+    <!-- ===== LEFT : TARGET ===== -->
+    <aside class="col left">
+      <div class="scroll">
+        <div class="block" id="dropBlock">
+          <h3>1. ベースフォント</h3>
+          <div class="dropzone" id="dropzone">
+            <b>TTFをドラッグ＆ドロップ</b>
+            <small>または「フォントを開く」。Noto Sans JP / 明朝 / ゴシック等の .ttf（TrueType輪郭）</small>
+          </div>
+          <div id="fontBanner"></div>
+        </div>
+
+        <div class="block">
+          <h3>2. 対象の文字</h3>
+          <p class="hint">旧字体にしたい文字（先生が実際に入力する新字体）を1字。</p>
+          <div class="charline" style="margin-top:9px">
+            <input id="targetInput" maxlength="2" placeholder="例：崎" autocomplete="off">
+            <button class="btn accent" id="targetLoad" style="width:auto;padding:9px 14px">開く</button>
+          </div>
+          <div id="targetBanner"></div>
+        </div>
+
+        <div class="block" id="editedBlock">
+          <h3>編集した文字（差し替えリスト）</h3>
+          <div class="edited-list" id="editedList"><div class="empty">まだありません</div></div>
+          <div class="divider" style="margin:12px 0"></div>
+          <div class="btnrow">
+            <button class="btn ghost" id="projSave">作業を保存</button>
+            <button class="btn ghost" id="projLoad">作業を読込</button>
+          </div>
+          <input type="file" id="projInput" accept=".json" hidden>
+          <p class="hint" style="margin-top:8px">作業は .json で保存。次回このファイルとフォントを読めば続きから編集できます。</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== CENTER : STAGE ===== -->
+    <section class="stage">
+      <canvas id="stage"></canvas>
+      <div class="hud" id="hud"></div>
+      <div class="toolbar">
+        <button id="toolSelect" class="on" title="選択・移動 (V)">▲</button>
+        <button id="toolPan" title="画面移動 (Space)">✋</button>
+        <button id="btnFit" title="全体表示 (F)">⤢</button>
+        <button id="btnGuide" class="on" title="元字形ガイド表示">◇</button>
+      </div>
+    </section>
+
+    <!-- ===== RIGHT : DONOR ===== -->
+    <aside class="col right">
+      <div class="scroll">
+        <div class="block">
+          <h3>3. 部品を借りる文字（ドナー）</h3>
+          <p class="hint">部品の供給元にする文字、または既存の旧字体を1字。</p>
+          <div class="charline" style="margin-top:9px">
+            <input id="donorInput" maxlength="2" placeholder="例：立" autocomplete="off">
+            <button class="btn donor" id="donorLoad" style="width:auto;padding:9px 14px">表示</button>
+          </div>
+          <canvas class="mini-canvas" id="donorCanvas" style="margin-top:10px"></canvas>
+          <div class="contours" id="donorContours"></div>
+        </div>
+
+        <div class="block">
+          <h3>4. 反映する</h3>
+          <button class="btn donor" id="copyParts" disabled>選択した輪郭を対象へコピー</button>
+          <button class="btn ghost" id="replaceWhole" disabled style="margin-top:8px">この字形で対象を丸ごと置換</button>
+          <p class="hint" style="margin-top:8px">丸ごと置換＝既存の旧字体をそのまま使う最短ルート。コピー＝部品だけ流用して組む。</p>
+        </div>
+
+        <div class="block">
+          <h3>5. 書き出し</h3>
+          <button class="btn accent" id="exportBtn" disabled>TTFを書き出す</button>
+          <div id="exportBanner"></div>
+          <p class="hint" style="margin-top:8px">編集した字だけを差し替え、他のグリフ・cmap・IVSは元のまま温存します（A方式）。</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- ===== HELP MODAL ===== -->
+<div class="overlay" id="helpOverlay">
+  <div class="modal">
+    <h2>使い方</h2>
+    <p><b>①</b> TTFを開く → <b>②</b> 対象の文字（新字体）を開く → <b>③</b> ドナー文字を表示 → <b>④</b> 輪郭を選んでコピー、または丸ごと置換 → 位置を合わせる → <b>⑤</b> 書き出す。</p>
+    <div class="divider"></div>
+    <p style="margin-top:12px"><b>中央キャンバス操作</b></p>
+    <div class="keys">
+      <span><span class="kbd">クリック</span> 輪郭/点を選択</span>
+      <span><span class="kbd">ドラッグ</span> 移動</span>
+      <span><span class="kbd">← ↑ → ↓</span> 1単位移動</span>
+      <span><span class="kbd">Shift+矢印</span> 10単位</span>
+      <span><span class="kbd">Delete</span> 選択輪郭を削除</span>
+      <span><span class="kbd">Space+ドラッグ</span> 画面移動</span>
+      <span><span class="kbd">ホイール</span> 拡大縮小</span>
+      <span><span class="kbd">Esc</span> 選択解除</span>
+    </div>
+    <div class="divider" style="margin-top:14px"></div>
+    <p style="margin-top:12px"><b>対応フォント</b>：TrueType輪郭（glyf）の .ttf。游明朝/游ゴシック/IPAex/Noto Sans JP(static) 等。CFF形式(.otf) は本ツール非対応です。</p>
+    <p><b>書き出し後は必ず</b> FontForge か Windows で開いて表示を確認してください（本ツールは書き出し直後に内部で自己検証も行います）。</p>
+    <button class="btn" id="helpClose" style="margin-top:14px">閉じる</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   CONFIG
+========================================================================= */
+const USER_SETTINGS = {
+  strings:{
+    noFont:"フォント未読み込み",
+    unsupportedCFF:"このフォントはCFF形式(.otf)です。本ツールはTrueType輪郭(.ttf)のみ対応します。TTF版をご用意ください。",
+    unsupportedTTC:"TTCコレクションです。単一のTTFを取り出してからお使いください。",
+    parseFail:"フォントを解析できませんでした。TrueType(.ttf)ファイルかご確認ください。",
+    noGlyf:"glyfテーブルが見つかりません。TrueType輪郭のフォントではない可能性があります。",
+    fontOk:(name,n)=>`読込完了：${name}（グリフ数 ${n.toLocaleString()}）`,
+    charMissing:(c)=>`「${c}」はこのフォントに収録されていません（.notdef）。別の字か別フォントをお試しください。`,
+    charOk:(c,gid,uni)=>`「${c}」 glyph #${gid} / ${uni}`,
+    donorMissing:(c)=>`「${c}」は未収録です。`,
+    exportOkSelf:(name)=>`書き出し＆自己検証OK：${name}`,
+    exportSelfFail:"自己検証に失敗しました。書き出しは行われません。編集内容を見直してください。",
+    exportNoEdit:"編集した文字がありません。",
+    needFontFirst:"先にフォントを開いてください。"
+  },
+  geom:{
+    pointHitRadius:9, minZoom:0.05, maxZoom:6, zoomStep:1.12,
+    marginRatio:0.16, pointDrawRadius:3.4, arrowNudge:1, arrowNudgeFast:10
+  },
+  head:{ checkSumAdjustmentOffset:8, indexToLocFormatOffset:50 },
+  maxp:{ maxPointsOffset:6, maxContoursOffset:8 },
+  magic:{ sfntChecksum:0xB1B0AFBA }
+};
+
+/* =========================================================================
+   BINARY READER
+========================================================================= */
+class Reader{
+  constructor(buf){ this.dv=new DataView(buf); this.u8=new Uint8Array(buf); this.p=0; }
+  seek(o){ this.p=o; return this; }
+  u8_(){ const v=this.dv.getUint8(this.p); this.p+=1; return v; }
+  u16(){ const v=this.dv.getUint16(this.p); this.p+=2; return v; }
+  i16(){ const v=this.dv.getInt16(this.p); this.p+=2; return v; }
+  u32(){ const v=this.dv.getUint32(this.p); this.p+=4; return v; }
+  tag(){ let s=""; for(let i=0;i<4;i++) s+=String.fromCharCode(this.u8_()); return s; }
+}
+
+/* =========================================================================
+   GLYF CODEC (unit-tested logic)
+========================================================================= */
+class GlyphCodec{
+  static encodeSimple(contours){
+    const flat=[]; const endPts=[]; let n=0;
+    for(const c of contours){ for(const p of c) flat.push(p); n+=c.length; endPts.push(n-1); }
+    let xMin=32767,yMin=32767,xMax=-32768,yMax=-32768;
+    for(const p of flat){ if(p.x<xMin)xMin=p.x; if(p.y<yMin)yMin=p.y; if(p.x>xMax)xMax=p.x; if(p.y>yMax)yMax=p.y; }
+    if(flat.length===0){ xMin=yMin=xMax=yMax=0; }
+    const b=[];
+    const w16=(v)=>b.push((v>>8)&0xff,v&0xff);
+    const w16s=(v)=>{ v&=0xffff; b.push((v>>8)&0xff,v&0xff); };
+    const w8=(v)=>b.push(v&0xff);
+    w16(contours.length); w16s(xMin); w16s(yMin); w16s(xMax); w16s(yMax);
+    for(const e of endPts) w16(e);
+    w16(0);
+    const flags=[]; let px=0,py=0;
+    for(const p of flat){
+      let f=p.on?0x01:0x00; const dx=p.x-px, dy=p.y-py;
+      if(dx===0){ f|=0x10; } else if(dx>=-255&&dx<=255){ f|=0x02; if(dx>0)f|=0x10; } 
+      if(dy===0){ f|=0x20; } else if(dy>=-255&&dy<=255){ f|=0x04; if(dy>0)f|=0x20; }
+      flags.push(f); px=p.x; py=p.y;
+    }
+    for(const f of flags) w8(f);
+    px=0;
+    for(let i=0;i<flat.length;i++){ const p=flat[i],f=flags[i],dx=p.x-px; if(dx===0){} else if(f&0x02){ w8(Math.abs(dx)); } else { w16s(dx); } px=p.x; }
+    py=0;
+    for(let i=0;i<flat.length;i++){ const p=flat[i],f=flags[i],dy=p.y-py; if(dy===0){} else if(f&0x04){ w8(Math.abs(dy)); } else { w16s(dy); } py=p.y; }
+    if(b.length%2!==0) b.push(0);
+    return { bytes:new Uint8Array(b), bbox:[xMin,yMin,xMax,yMax], nContours:contours.length,
+             nPoints:flat.length };
+  }
+  static decodeSimple(dv, base, len){
+    let o=base;
+    const numC=dv.getInt16(o); o+=2;
+    o+=8;
+    const ends=[]; for(let i=0;i<numC;i++){ ends.push(dv.getUint16(o)); o+=2; }
+    const numPts=numC?ends[numC-1]+1:0;
+    const instrLen=dv.getUint16(o); o+=2; o+=instrLen;
+    const flags=[];
+    while(flags.length<numPts){ const f=dv.getUint8(o); o++; flags.push(f); if(f&0x08){ let r=dv.getUint8(o); o++; while(r-->0) flags.push(f); } }
+    const xs=[]; let x=0;
+    for(let i=0;i<numPts;i++){ const f=flags[i]; if(f&0x02){ const d=dv.getUint8(o);o++; x+=(f&0x10)?d:-d; } else if(!(f&0x10)){ x+=dv.getInt16(o);o+=2; } xs.push(x); }
+    const ys=[]; let y=0;
+    for(let i=0;i<numPts;i++){ const f=flags[i]; if(f&0x04){ const d=dv.getUint8(o);o++; y+=(f&0x20)?d:-d; } else if(!(f&0x20)){ y+=dv.getInt16(o);o+=2; } ys.push(y); }
+    const contours=[]; let start=0;
+    for(let i=0;i<numC;i++){ const end=ends[i]; const c=[]; for(let j=start;j<=end;j++) c.push({x:xs[j],y:ys[j],on:(flags[j]&0x01)!==0}); contours.push(c); start=end+1; }
+    return contours;
+  }
+}
+
+/* =========================================================================
+   FONT (parse + surgical export)
+========================================================================= */
+class TTFFont{
+  constructor(buf){
+    this.buf=buf; this.u8=new Uint8Array(buf); this.dv=new DataView(buf);
+    this.tables={}; this.editedGlyphs=new Map();
+    this._parse();
+  }
+  _parse(){
+    const r=new Reader(this.buf);
+    const ver=r.u32();
+    if(ver===0x74746366) throw {code:"TTC"};
+    const numTables=r.u16(); r.u16(); r.u16(); r.u16();
+    for(let i=0;i<numTables;i++){ const tag=r.tag(); const chk=r.u32(); const off=r.u32(); const len=r.u32(); this.tables[tag]={tag,checksum:chk,offset:off,length:len}; }
+    if(!this.tables["glyf"]||!this.tables["loca"]){
+      if(this.tables["CFF "]) throw {code:"CFF"};
+      throw {code:"NOGLYF"};
+    }
+    this.sfntVersion=ver;
+    this.glyfOffset=this.tables["glyf"].offset;
+    this._parseHead(); this._parseMaxp(); this._parseHhea(); this._parseLoca(); this._parseCmap();
+  }
+  _tblView(tag){ const t=this.tables[tag]; return {dv:this.dv, base:t.offset, len:t.length}; }
+  _parseHead(){ const t=this.tables["head"]; this.unitsPerEm=this.dv.getUint16(t.offset+18); this.indexToLocFormat=this.dv.getInt16(t.offset+50); }
+  _parseMaxp(){ const t=this.tables["maxp"]; this.numGlyphs=this.dv.getUint16(t.offset+4); this.maxPoints=this.dv.getUint16(t.offset+6); this.maxContours=this.dv.getUint16(t.offset+8); }
+  _parseHhea(){ const t=this.tables["hhea"]; this.numberOfHMetrics=this.dv.getUint16(t.offset+34); }
+  advanceWidth(gid){ const t=this.tables["hmtx"]; if(!t) return this.unitsPerEm; const idx=Math.min(gid,this.numberOfHMetrics-1); return this.dv.getUint16(t.offset+idx*4); }
+  _parseLoca(){
+    const t=this.tables["loca"]; const n=this.numGlyphs+1; const loca=new Array(n);
+    if(this.indexToLocFormat===0){ for(let i=0;i<n;i++) loca[i]=this.dv.getUint16(t.offset+i*2)*2; }
+    else { for(let i=0;i<n;i++) loca[i]=this.dv.getUint32(t.offset+i*4); }
+    this.loca=loca;
+  }
+  _parseCmap(){
+    const t=this.tables["cmap"]; const base=t.offset;
+    const n=this.dv.getUint16(base+2); let best=null,bestScore=-1;
+    for(let i=0;i<n;i++){
+      const pid=this.dv.getUint16(base+4+i*8); const eid=this.dv.getUint16(base+6+i*8);
+      const off=this.dv.getUint32(base+8+i*8); const fmt=this.dv.getUint16(base+off);
+      let score=0;
+      if(pid===3&&eid===10) score=5; else if(pid===0&&(eid===4||eid===6)) score=4;
+      else if(pid===3&&eid===1) score=3; else if(pid===0) score=2; else score=1;
+      if(fmt===12) score+=0.5;
+      if((fmt===4||fmt===12)&&score>bestScore){ bestScore=score; best={off:base+off,fmt}; }
+    }
+    this.cmapMap=new Map();
+    if(!best) return;
+    if(best.fmt===4) this._readCmap4(best.off); else this._readCmap12(best.off);
+  }
+  _readCmap4(o){
+    const dv=this.dv; const segX2=dv.getUint16(o+6); const segCount=segX2/2;
+    const endO=o+14, startO=endO+segX2+2, deltaO=startO+segX2, rangeO=deltaO+segX2;
+    for(let s=0;s<segCount;s++){
+      const end=dv.getUint16(endO+s*2), start=dv.getUint16(startO+s*2);
+      const delta=dv.getUint16(deltaO+s*2), rangeOffset=dv.getUint16(rangeO+s*2);
+      if(start===0xffff) continue;
+      for(let c=start;c<=end;c++){
+        let g;
+        if(rangeOffset===0){ g=(c+delta)&0xffff; }
+        else { const gi=rangeO+s*2+rangeOffset+(c-start)*2; g=dv.getUint16(gi); if(g!==0) g=(g+delta)&0xffff; }
+        if(g!==0) this.cmapMap.set(c,g);
+      }
+    }
+  }
+  _readCmap12(o){
+    const dv=this.dv; const nGroups=dv.getUint32(o+12); let g=o+16;
+    for(let i=0;i<nGroups;i++){
+      const sc=dv.getUint32(g), ec=dv.getUint32(g+4), sg=dv.getUint32(g+8); g+=12;
+      for(let c=sc;c<=ec;c++) this.cmapMap.set(c,sg+(c-sc));
+    }
+  }
+  glyphIdForChar(ch){ const cp=ch.codePointAt(0); const g=this.cmapMap.get(cp); return (g===undefined)?0:g; }
+
+  glyphContours(gid){
+    if(this.editedGlyphs.has(gid)) return this._clone(this.editedGlyphs.get(gid));
+    return this._rawContours(gid, 0);
+  }
+  _rawContours(gid, depth){
+    if(depth>6) return [];
+    const rs=this.loca[gid], re=this.loca[gid+1];
+    if(re<=rs) return [];
+    const start=this.glyfOffset+rs, end=this.glyfOffset+re;
+    const numC=this.dv.getInt16(start);
+    if(numC>=0) return GlyphCodec.decodeSimple(this.dv, start, end-start);
+    return this._compositeContours(start, depth);
+  }
+  _compositeContours(base, depth){
+    const dv=this.dv; let o=base+10; const out=[];
+    let more=true;
+    while(more){
+      const flags=dv.getUint16(o); o+=2; const compGid=dv.getUint16(o); o+=2;
+      let arg1,arg2;
+      if(flags&0x0001){ arg1=dv.getInt16(o); o+=2; arg2=dv.getInt16(o); o+=2; }
+      else { arg1=(dv.getInt8(o)); o+=1; arg2=(dv.getInt8(o)); o+=1; }
+      let a=1,b=0,c=0,d=1;
+      if(flags&0x0008){ a=d=dv.getInt16(o)/16384; o+=2; }
+      else if(flags&0x0040){ a=dv.getInt16(o)/16384; o+=2; d=dv.getInt16(o)/16384; o+=2; }
+      else if(flags&0x0080){ a=dv.getInt16(o)/16384; o+=2; b=dv.getInt16(o)/16384; o+=2; c=dv.getInt16(o)/16384; o+=2; d=dv.getInt16(o)/16384; o+=2; }
+      const dx=(flags&0x0002)?arg1:0, dy=(flags&0x0002)?arg2:0;
+      const sub=this._rawContours(compGid, depth+1);
+      for(const cont of sub){
+        out.push(cont.map(p=>({ x:Math.round(a*p.x+c*p.y+dx), y:Math.round(b*p.x+d*p.y+dy), on:p.on })));
+      }
+      more=(flags&0x0020)!==0;
+    }
+    return out;
+  }
+  _clone(cs){ return cs.map(c=>c.map(p=>({x:p.x,y:p.y,on:p.on}))); }
+
+  setEdited(gid, contours){ this.editedGlyphs.set(gid, this._round(contours)); }
+  clearEdited(gid){ this.editedGlyphs.delete(gid); }
+  _round(cs){ return cs.map(c=>c.map(p=>({x:Math.round(p.x),y:Math.round(p.y),on:!!p.on}))); }
+
+  /* ---- surgical export ---- */
+  export(){
+    const numGlyphs=this.numGlyphs;
+    const glyphBytes=new Array(numGlyphs);
+    let editMaxPts=this.maxPoints, editMaxContours=this.maxContours;
+    for(let g=0;g<numGlyphs;g++){
+      if(this.editedGlyphs.has(g)){
+        const enc=GlyphCodec.encodeSimple(this.editedGlyphs.get(g));
+        glyphBytes[g]=enc.bytes;
+        if(enc.nPoints>editMaxPts) editMaxPts=enc.nPoints;
+        if(enc.nContours>editMaxContours) editMaxContours=enc.nContours;
+      } else {
+        const s=this.glyfOffset+this.loca[g], e=this.glyfOffset+this.loca[g+1];
+        glyphBytes[g]=this.u8.slice(s,e);
+      }
+    }
+    let glyfLen=0; for(const b of glyphBytes){ glyfLen+=b.length + (b.length%2); }
+    const glyf=new Uint8Array(glyfLen);
+    const newLoca=new Uint32Array(numGlyphs+1);
+    let pos=0;
+    for(let g=0;g<numGlyphs;g++){ newLoca[g]=pos; glyf.set(glyphBytes[g],pos); pos+=glyphBytes[g].length; if(glyphBytes[g].length%2){ glyf[pos]=0; pos+=1; } }
+    newLoca[numGlyphs]=pos;
+    const loca=new Uint8Array((numGlyphs+1)*4);
+    const locaDv=new DataView(loca.buffer);
+    for(let i=0;i<=numGlyphs;i++) locaDv.setUint32(i*4,newLoca[i]);
+
+    const head=this.u8.slice(this.tables["head"].offset, this.tables["head"].offset+this.tables["head"].length);
+    new DataView(head.buffer).setInt16(USER_SETTINGS.head.indexToLocFormatOffset,1);
+    new DataView(head.buffer).setUint32(USER_SETTINGS.head.checkSumAdjustmentOffset,0);
+
+    const maxp=this.u8.slice(this.tables["maxp"].offset, this.tables["maxp"].offset+this.tables["maxp"].length);
+    const maxpDv=new DataView(maxp.buffer);
+    maxpDv.setUint16(USER_SETTINGS.maxp.maxPointsOffset, Math.min(0xffff,editMaxPts));
+    maxpDv.setUint16(USER_SETTINGS.maxp.maxContoursOffset, Math.min(0xffff,editMaxContours));
+
+    const out={};
+    for(const tag in this.tables){
+      if(tag==="DSIG") continue;
+      const t=this.tables[tag];
+      out[tag]=this.u8.slice(t.offset,t.offset+t.length);
+    }
+    out["glyf"]=glyf; out["loca"]=loca; out["head"]=head; out["maxp"]=maxp;
+
+    return this._assemble(out);
+  }
+  _assemble(tablesData){
+    const tags=Object.keys(tablesData).sort();
+    const numTables=tags.length;
+    const headerLen=12+numTables*16;
+    const layout=[]; let offset=headerLen;
+    for(const tag of tags){
+      const data=tablesData[tag]; const len=data.length; const padded=(len+3)&~3;
+      layout.push({tag,data,offset,len,padded}); offset+=padded;
+    }
+    const total=offset;
+    const out=new Uint8Array(total); const dv=new DataView(out.buffer);
+    dv.setUint32(0,this.sfntVersion);
+    dv.setUint16(4,numTables);
+    let sr=1,es=0; while(sr*2<=numTables){ sr*=2; es++; } sr*=16;
+    dv.setUint16(6,sr); dv.setUint16(8,es); dv.setUint16(10,numTables*16-sr);
+    let dirP=12;
+    for(const e of layout){
+      for(let i=0;i<4;i++) out[dirP+i]=e.tag.charCodeAt(i);
+      const chk=this._checksum(e.data);
+      dv.setUint32(dirP+4,chk); dv.setUint32(dirP+8,e.offset); dv.setUint32(dirP+12,e.len);
+      out.set(e.data,e.offset);
+      dirP+=16;
+    }
+    const fileChk=this._checksumBuffer(out);
+    const adj=(USER_SETTINGS.magic.sfntChecksum - fileChk)>>>0;
+    const headEntry=layout.find(e=>e.tag==="head");
+    dv.setUint32(headEntry.offset+USER_SETTINGS.head.checkSumAdjustmentOffset, adj);
+    return out;
+  }
+  _checksum(u8){ let sum=0; const padded=(u8.length+3)&~3;
+    for(let i=0;i<padded;i+=4){ const b0=i<u8.length?u8[i]:0,b1=i+1<u8.length?u8[i+1]:0,b2=i+2<u8.length?u8[i+2]:0,b3=i+3<u8.length?u8[i+3]:0; sum=(sum+(((b0<<24)|(b1<<16)|(b2<<8)|b3)>>>0))>>>0; } return sum>>>0; }
+  _checksumBuffer(u8){ let sum=0; const n=u8.length; for(let i=0;i<n;i+=4){ const b0=u8[i]||0,b1=u8[i+1]||0,b2=u8[i+2]||0,b3=u8[i+3]||0; sum=(sum+(((b0<<24)|(b1<<16)|(b2<<8)|b3)>>>0))>>>0; } return sum>>>0; }
+}
+
+/* =========================================================================
+   GLYPH RENDER HELPERS
+========================================================================= */
+class GlyphRender{
+  static contourPath(ctx, contour){
+    if(contour.length===0) return;
+    let pts=contour.slice();
+    let startIdx=pts.findIndex(p=>p.on);
+    if(startIdx===-1){
+      const mids=[]; for(let i=0;i<pts.length;i++){ const a=pts[i],b=pts[(i+1)%pts.length]; mids.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,on:true}); }
+      const merged=[]; for(let i=0;i<pts.length;i++){ merged.push(mids[i]); merged.push(pts[(i+1)%pts.length]); }
+      pts=merged; startIdx=0;
+    }
+    const ordered=[]; for(let i=0;i<pts.length;i++) ordered.push(pts[(startIdx+i)%pts.length]);
+    ordered.push(ordered[0]);
+    ctx.moveTo(ordered[0].x, ordered[0].y);
+    let i=1;
+    while(i<ordered.length){
+      const p=ordered[i];
+      if(p.on){ ctx.lineTo(p.x,p.y); i++; }
+      else{
+        const next=ordered[i+1];
+        let endp;
+        if(next && next.on){ endp=next; i+=2; }
+        else if(next){ endp={x:(p.x+next.x)/2,y:(p.y+next.y)/2}; i++; }
+        else { endp=ordered[0]; i++; }
+        ctx.quadraticCurveTo(p.x,p.y,endp.x,endp.y);
+      }
+    }
+  }
+  static bbox(contours){
+    let xMin=Infinity,yMin=Infinity,xMax=-Infinity,yMax=-Infinity;
+    for(const c of contours) for(const p of c){ if(p.x<xMin)xMin=p.x; if(p.y<yMin)yMin=p.y; if(p.x>xMax)xMax=p.x; if(p.y>yMax)yMax=p.y; }
+    if(!isFinite(xMin)) return {xMin:0,yMin:0,xMax:0,yMax:0};
+    return {xMin,yMin,xMax,yMax};
+  }
+}
+
+/* =========================================================================
+   EDITOR (center stage)
+========================================================================= */
+class Editor{
+  constructor(canvas, hud, app){
+    this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.hud=hud; this.app=app;
+    this.contours=[]; this.origContours=[];
+    this.selContours=new Set(); this.selPoint=null;
+    this.scale=0.3; this.tx=0; this.ty=0;
+    this.tool="select"; this.showGuide=true;
+    this.advance=0;
+    this._bind();
+  }
+  _bind(){
+    this._onDown=this.onDown.bind(this); this._onMove=this.onMove.bind(this);
+    this._onUp=this.onUp.bind(this); this._onWheel=this.onWheel.bind(this);
+    this._onResize=this.resize.bind(this);
+    this.canvas.addEventListener("pointerdown",this._onDown);
+    window.addEventListener("pointermove",this._onMove);
+    window.addEventListener("pointerup",this._onUp);
+    this.canvas.addEventListener("wheel",this._onWheel,{passive:false});
+    window.addEventListener("resize",this._onResize);
+  }
+  destroy(){
+    this.canvas.removeEventListener("pointerdown",this._onDown);
+    window.removeEventListener("pointermove",this._onMove);
+    window.removeEventListener("pointerup",this._onUp);
+    this.canvas.removeEventListener("wheel",this._onWheel);
+    window.removeEventListener("resize",this._onResize);
+  }
+  setGlyph(contours, origContours, advance, upm){
+    this.contours=contours; this.origContours=origContours||[]; this.advance=advance||upm; this.upm=upm;
+    this.selContours.clear(); this.selPoint=null;
+    this.fit(); this.draw();
+  }
+  clear(){ this.contours=[]; this.origContours=[]; this.selContours.clear(); this.selPoint=null; this.draw(); }
+
+  resize(){
+    const r=this.canvas.getBoundingClientRect(); const dpr=window.devicePixelRatio||1;
+    this.canvas.width=Math.max(1,Math.round(r.width*dpr)); this.canvas.height=Math.max(1,Math.round(r.height*dpr));
+    this.cssW=r.width; this.cssH=r.height; this.dpr=dpr; this.draw();
+  }
+  fit(){
+    if(!this.upm) return;
+    const r=this.canvas.getBoundingClientRect(); const m=USER_SETTINGS.geom.marginRatio;
+    const box=this.upm; const s=Math.min(r.width,r.height)*(1-m*2)/box;
+    this.scale=s;
+    this.tx=(r.width - box*s)/2;
+    this.ty=r.height - (r.height - box*s)/2;
+    this.draw();
+  }
+  toScreen(x,y){ return [ this.tx + x*this.scale, this.ty - y*this.scale ]; }
+  toFont(px,py){ return [ (px-this.tx)/this.scale, (this.ty-py)/this.scale ]; }
+  _localXY(e){ const r=this.canvas.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+
+  draw(){
+    const ctx=this.ctx; if(!ctx) return;
+    const dpr=this.dpr||1; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const w=this.cssW||this.canvas.width, h=this.cssH||this.canvas.height;
+    ctx.clearRect(0,0,w,h);
+    this._drawGrid(w,h);
+    if(!this.upm){ this._hud(); return; }
+    if(this.showGuide && this.origContours.length) this._drawContours(this.origContours,{stroke:"rgba(154,166,189,.28)",fill:null,pts:false});
+    this._drawContours(this.contours,{stroke:"rgba(231,236,245,.9)",fill:"rgba(55,214,195,.10)",pts:true});
+    this._hud();
+  }
+  _drawGrid(w,h){
+    const ctx=this.ctx;
+    ctx.fillStyle="#0d1017"; ctx.fillRect(0,0,w,h);
+    if(!this.upm) return;
+    ctx.lineWidth=1; ctx.strokeStyle="#242c3c";
+    const [x0,y0]=this.toScreen(0,0); const [x1,y1]=this.toScreen(this.upm,this.upm);
+    ctx.strokeRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0));
+    ctx.strokeStyle="#3a445c";
+    ctx.beginPath(); ctx.moveTo(0,y0); ctx.lineTo(w,y0); ctx.stroke();
+    const [ax]=this.toScreen(this.advance,0);
+    ctx.strokeStyle="rgba(242,182,87,.4)"; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(ax,0); ctx.lineTo(ax,h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle="rgba(58,68,92,.5)";
+    ctx.beginPath(); ctx.moveTo(x0,0); ctx.lineTo(x0,h); ctx.stroke();
+  }
+  _drawContours(contours, style){
+    const ctx=this.ctx; ctx.beginPath();
+    for(const c of contours){
+      const screen=c.map(p=>{ const [sx,sy]=this.toScreen(p.x,p.y); return {x:sx,y:sy,on:p.on}; });
+      GlyphRender.contourPath(ctx, screen);
+      ctx.closePath();
+    }
+    if(style.fill){ ctx.fillStyle=style.fill; ctx.fill("nonzero"); }
+    if(style.stroke){ ctx.lineWidth=1.4; ctx.strokeStyle=style.stroke; ctx.stroke(); }
+    if(style.pts){
+      contours.forEach((c,ci)=>{
+        const selc=this.selContours.has(ci);
+        c.forEach((p,pi)=>{
+          const [sx,sy]=this.toScreen(p.x,p.y);
+          const isSel=this.selPoint&&this.selPoint.c===ci&&this.selPoint.p===pi;
+          const rad=USER_SETTINGS.geom.pointDrawRadius+(isSel?1.6:0);
+          ctx.beginPath();
+          if(p.on){ ctx.rect(sx-rad,sy-rad,rad*2,rad*2); } else { ctx.arc(sx,sy,rad,0,Math.PI*2); }
+          ctx.fillStyle=isSel?"#fff":(selc?"#37d6c3":(p.on?"#9aa6bd":"rgba(242,182,87,.9)"));
+          ctx.fill();
+        });
+      });
+    }
+  }
+  _hud(){
+    if(!this.app.font){ this.hud.innerHTML="フォントを読み込んでください"; return; }
+    if(!this.upm){ this.hud.innerHTML="文字を開いてください"; return; }
+    const ch=this.app.targetChar||"";
+    const n=this.contours.length;
+    this.hud.innerHTML=`対象 <b>${ch||"—"}</b> ／ 輪郭 ${n} ／ upm ${this.upm} ／ 送り幅 ${this.advance}<br>`+
+      (this.selContours.size?`輪郭を ${this.selContours.size} 個選択中`:"クリックで輪郭を選択");
+  }
+
+  onWheel(e){
+    e.preventDefault(); if(!this.upm) return;
+    const [px,py]=this._localXY(e);
+    const [fx,fy]=this.toFont(px,py);
+    const dir=e.deltaY<0?1:-1;
+    const step=USER_SETTINGS.geom.zoomStep;
+    let ns=this.scale*(dir>0?step:1/step);
+    ns=Math.max(USER_SETTINGS.geom.minZoom,Math.min(USER_SETTINGS.geom.maxZoom,ns));
+    this.scale=ns;
+    const [nsx,nsy]=this.toScreen(fx,fy);
+    this.tx+=px-nsx; this.ty+=py-nsy;
+    this.draw();
+  }
+  onDown(e){
+    if(!this.upm) return;
+    this.canvas.setPointerCapture(e.pointerId);
+    const [px,py]=this._localXY(e);
+    this.dragStart=[px,py]; this.dragMoved=false;
+    if(this.tool==="pan"||this.app.spaceDown){ this.mode="pan"; this.panStart=[this.tx,this.ty]; return; }
+    const hitPt=this._hitPoint(px,py);
+    if(hitPt){ this.mode="point"; this.selPoint=hitPt; this.selContours.clear(); this.selContours.add(hitPt.c); this.draw(); this.app.syncPanels(); return; }
+    const hitC=this._hitContour(px,py);
+    if(hitC!==-1){
+      if(!e.shiftKey && !this.selContours.has(hitC)){ this.selContours.clear(); }
+      this.selContours.add(hitC); this.selPoint=null; this.mode="contour";
+      this._snapshot(); this.draw(); this.app.syncPanels(); return;
+    }
+    this.selContours.clear(); this.selPoint=null; this.mode="none"; this.draw(); this.app.syncPanels();
+  }
+  onMove(e){
+    if(this.mode===undefined||this.mode==="none") { this._cursor(e); return; }
+    const [px,py]=this._localXY(e);
+    const dx=px-this.dragStart[0], dy=py-this.dragStart[1];
+    if(Math.abs(dx)+Math.abs(dy)>2) this.dragMoved=true;
+    if(this.mode==="pan"){ this.tx=this.panStart[0]+dx; this.ty=this.panStart[1]+dy; this.draw(); return; }
+    const fdx=dx/this.scale, fdy=-dy/this.scale;
+    if(this.mode==="point" && this.selPoint){
+      const base=this._snap?this._snap.point:null;
+      if(!this._snap){ this._snap={point:{...this.contours[this.selPoint.c][this.selPoint.p]}}; }
+      const p=this.contours[this.selPoint.c][this.selPoint.p];
+      p.x=this._snap.point.x+fdx; p.y=this._snap.point.y+fdy; this.draw();
+    } else if(this.mode==="contour"){
+      for(const ci of this.selContours){ const orig=this._snap.contours[ci]; const cur=this.contours[ci];
+        for(let i=0;i<cur.length;i++){ cur[i].x=orig[i].x+fdx; cur[i].y=orig[i].y+fdy; } }
+      this.draw();
+    }
+  }
+  onUp(e){
+    if(this.mode==="contour"||this.mode==="point"){ this._commit(); }
+    this.mode="none"; this._snap=null;
+    if(this.canvas.hasPointerCapture&&this.canvas.hasPointerCapture(e.pointerId)) this.canvas.releasePointerCapture(e.pointerId);
+  }
+  _cursor(e){}
+  _snapshot(){ this._snap={contours:this.contours.map(c=>c.map(p=>({...p})))}; }
+  _commit(){ this.roundLive(); this.app.commitTarget(); this.draw(); }
+  roundLive(){ for(const c of this.contours) for(const p of c){ p.x=Math.round(p.x); p.y=Math.round(p.y); } }
+
+  _hitPoint(px,py){
+    const R=USER_SETTINGS.geom.pointHitRadius;
+    for(let ci=0;ci<this.contours.length;ci++){ const c=this.contours[ci];
+      for(let pi=0;pi<c.length;pi++){ const [sx,sy]=this.toScreen(c[pi].x,c[pi].y);
+        if(Math.hypot(sx-px,sy-py)<=R) return {c:ci,p:pi}; } }
+    return null;
+  }
+  _hitContour(px,py){
+    const [fx,fy]=this.toFont(px,py);
+    for(let ci=this.contours.length-1;ci>=0;ci--){ if(this._inside(this.contours[ci],fx,fy)) return ci; }
+    let bestD=Infinity,best=-1;
+    for(let ci=0;ci<this.contours.length;ci++){ for(const p of this.contours[ci]){ const [sx,sy]=this.toScreen(p.x,p.y); const d=Math.hypot(sx-px,sy-py); if(d<bestD){bestD=d;best=ci;} } }
+    return bestD<14?best:-1;
+  }
+  _inside(contour,x,y){
+    let inside=false; const n=contour.length;
+    for(let i=0,j=n-1;i<n;j=i++){ const a=contour[i],b=contour[j];
+      if(((a.y>y)!==(b.y>y)) && (x < (b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-9)+a.x)) inside=!inside; }
+    return inside;
+  }
+  nudge(dx,dy){
+    if(this.selPoint){ const p=this.contours[this.selPoint.c][this.selPoint.p]; p.x+=dx; p.y+=dy; }
+    else if(this.selContours.size){ for(const ci of this.selContours) for(const p of this.contours[ci]){ p.x+=dx; p.y+=dy; } }
+    else return;
+    this.roundLive(); this.app.commitTarget(); this.draw();
+  }
+  deleteSelected(){
+    if(this.selContours.size){
+      const keep=[]; for(let i=0;i<this.contours.length;i++) if(!this.selContours.has(i)) keep.push(this.contours[i]);
+      this.contours=keep; this.selContours.clear(); this.selPoint=null; this.app.commitTarget(); this.draw();
+    }
+  }
+  deselect(){ this.selContours.clear(); this.selPoint=null; this.draw(); this.app.syncPanels(); }
+}
+
+/* =========================================================================
+   APP
+========================================================================= */
+class App{
+  constructor(){
+    this.font=null; this.targetChar=""; this.targetGid=-1;
+    this.donorChar=""; this.donorGid=-1; this.donorContours=[]; this.donorSel=new Set();
+    this.spaceDown=false;
+    this.$=(id)=>document.getElementById(id);
+    this.editor=new Editor(this.$("stage"), this.$("hud"), this);
+    this._bind();
+    this.editor.resize();
+    this.refreshEdited();
+  }
+  _bind(){
+    this.$("loadBtn").onclick=()=>this.$("fileInput").click();
+    this.$("fileInput").onchange=(e)=>{ if(e.target.files[0]) this.loadFont(e.target.files[0]); };
+    this._dnd();
+    this.$("targetLoad").onclick=()=>this.openTarget();
+    this.$("targetInput").addEventListener("keydown",e=>{ if(e.key==="Enter") this.openTarget(); });
+    this.$("donorLoad").onclick=()=>this.openDonor();
+    this.$("donorInput").addEventListener("keydown",e=>{ if(e.key==="Enter") this.openDonor(); });
+    this.$("copyParts").onclick=()=>this.copyParts();
+    this.$("replaceWhole").onclick=()=>this.replaceWhole();
+    this.$("exportBtn").onclick=()=>this.doExport();
+    this.$("btnFit").onclick=()=>this.editor.fit();
+    this.$("toolSelect").onclick=()=>this.setTool("select");
+    this.$("toolPan").onclick=()=>this.setTool("pan");
+    this.$("btnGuide").onclick=()=>this.toggleGuide();
+    this.$("helpBtn").onclick=()=>this.$("helpOverlay").classList.add("show");
+    this.$("helpClose").onclick=()=>this.$("helpOverlay").classList.remove("show");
+    this.$("projSave").onclick=()=>this.saveProject();
+    this.$("projLoad").onclick=()=>this.$("projInput").click();
+    this.$("projInput").onchange=(e)=>{ if(e.target.files[0]) this.loadProject(e.target.files[0]); };
+    window.addEventListener("keydown",e=>this.onKey(e,true));
+    window.addEventListener("keyup",e=>this.onKey(e,false));
+  }
+  _dnd(){
+    const dz=this.$("dropzone");
+    ["dragenter","dragover"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.add("hot");}));
+    ["dragleave","drop"].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove("hot");}));
+    dz.addEventListener("drop",e=>{ const f=e.dataTransfer.files[0]; if(f) this.loadFont(f); });
+    dz.addEventListener("click",()=>this.$("fileInput").click());
+  }
+  onKey(e,down){
+    if(e.target.tagName==="INPUT") return;
+    if(e.key===" "){ this.spaceDown=down; if(down) e.preventDefault(); return; }
+    if(!down) return;
+    const g=USER_SETTINGS.geom; const fast=e.shiftKey?g.arrowNudgeFast:g.arrowNudge;
+    if(e.key==="ArrowLeft"){ this.editor.nudge(-fast,0); e.preventDefault(); }
+    else if(e.key==="ArrowRight"){ this.editor.nudge(fast,0); e.preventDefault(); }
+    else if(e.key==="ArrowUp"){ this.editor.nudge(0,fast); e.preventDefault(); }
+    else if(e.key==="ArrowDown"){ this.editor.nudge(0,-fast); e.preventDefault(); }
+    else if(e.key==="Delete"||e.key==="Backspace"){ this.editor.deleteSelected(); e.preventDefault(); }
+    else if(e.key==="Escape"){ this.editor.deselect(); }
+    else if(e.key==="f"||e.key==="F"){ this.editor.fit(); }
+    else if(e.key==="v"||e.key==="V"){ this.setTool("select"); }
+  }
+  setTool(t){ this.editor.tool=t; this.$("toolSelect").classList.toggle("on",t==="select"); this.$("toolPan").classList.toggle("on",t==="pan"); }
+  toggleGuide(){ this.editor.showGuide=!this.editor.showGuide; this.$("btnGuide").classList.toggle("on",this.editor.showGuide); this.editor.draw(); }
+
+  banner(id,type,msg){ const el=this.$(id); if(!msg){ el.innerHTML=""; return; } el.innerHTML=`<div class="banner ${type}" style="margin-top:10px">${msg}</div>`; }
+
+  async loadFont(file){
+    try{
+      const buf=await file.arrayBuffer();
+      this.font=new TTFFont(buf);
+      this.fontName=file.name;
+      this.$("fileState").textContent=file.name;
+      this.banner("fontBanner","ok",USER_SETTINGS.strings.fontOk(file.name,this.font.numGlyphs));
+      this.$("exportBtn").disabled=false;
+      this.editor.clear();
+      if(this.targetChar) this.openTarget();
+    }catch(err){
+      this.font=null; this.$("exportBtn").disabled=true;
+      const S=USER_SETTINGS.strings;
+      const map={CFF:S.unsupportedCFF,TTC:S.unsupportedTTC,NOGLYF:S.noGlyf};
+      this.banner("fontBanner","err", map[err&&err.code] || S.parseFail);
+    }
+  }
+  openTarget(){
+    if(!this.font){ this.banner("targetBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    const raw=this.$("targetInput").value; if(!raw) return;
+    const ch=[...raw][0];
+    const gid=this.font.glyphIdForChar(ch);
+    if(gid===0){ this.banner("targetBanner","err",USER_SETTINGS.strings.charMissing(ch)); return; }
+    this.targetChar=ch; this.targetGid=gid;
+    const uni="U+"+ch.codePointAt(0).toString(16).toUpperCase().padStart(4,"0");
+    this.banner("targetBanner","ok",USER_SETTINGS.strings.charOk(ch,gid,uni));
+    const contours=this.font.glyphContours(gid);
+    const orig=this.font._rawContours(gid,0);
+    this.editor.setGlyph(contours, orig, this.font.advanceWidth(gid), this.font.unitsPerEm);
+    this.syncPanels();
+  }
+  openDonor(){
+    if(!this.font){ this.banner("targetBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    const raw=this.$("donorInput").value; if(!raw) return;
+    const ch=[...raw][0];
+    const gid=this.font.glyphIdForChar(ch);
+    if(gid===0){ this.$("donorContours").innerHTML=`<div class="empty">${USER_SETTINGS.strings.donorMissing(ch)}</div>`; return; }
+    this.donorChar=ch; this.donorGid=gid;
+    this.donorContours=this.font._rawContours(gid,0);
+    this.donorSel=new Set();
+    this.drawDonor();
+    this.renderDonorContours();
+    this.$("copyParts").disabled=true;
+    this.$("replaceWhole").disabled=!this.targetGid || this.targetGid<0;
+  }
+  drawDonor(){
+    const cv=this.$("donorCanvas"); const ctx=cv.getContext("2d");
+    const r=cv.getBoundingClientRect(); const dpr=window.devicePixelRatio||1;
+    cv.width=r.width*dpr; cv.height=r.height*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,r.width,r.height);
+    ctx.fillStyle="#0d1017"; ctx.fillRect(0,0,r.width,r.height);
+    const upm=this.font.unitsPerEm; const m=0.14;
+    const s=Math.min(r.width,r.height)*(1-m*2)/upm;
+    const tx=(r.width-upm*s)/2, ty=r.height-(r.height-upm*s)/2;
+    const toS=(x,y)=>[tx+x*s, ty-y*s];
+    this.donorContours.forEach((c,ci)=>{
+      ctx.beginPath();
+      const scr=c.map(p=>{ const [sx,sy]=toS(p.x,p.y); return {x:sx,y:sy,on:p.on}; });
+      GlyphRender.contourPath(ctx,scr); ctx.closePath();
+      const sel=this.donorSel.has(ci);
+      ctx.fillStyle=sel?"rgba(242,182,87,.28)":"rgba(154,166,189,.14)"; ctx.fill("nonzero");
+      ctx.lineWidth=1.3; ctx.strokeStyle=sel?"#f2b657":"rgba(231,236,245,.6)"; ctx.stroke();
+    });
+  }
+  renderDonorContours(){
+    const box=this.$("donorContours"); box.innerHTML="";
+    this.donorContours.forEach((c,ci)=>{
+      const row=document.createElement("div"); row.className="row"+(this.donorSel.has(ci)?" sel":"");
+      row.innerHTML=`<span class="dot"></span>輪郭 ${ci+1}　<span style="margin-left:auto">${c.length} 点</span>`;
+      row.onclick=()=>{ if(this.donorSel.has(ci)) this.donorSel.delete(ci); else this.donorSel.add(ci);
+        this.drawDonor(); this.renderDonorContours();
+        this.$("copyParts").disabled=this.donorSel.size===0 || this.targetGid<0; };
+      box.appendChild(row);
+    });
+  }
+  copyParts(){
+    if(this.targetGid<0 || !this.donorSel.size) return;
+    const add=[...this.donorSel].map(ci=>this.donorContours[ci].map(p=>({x:p.x,y:p.y,on:p.on})));
+    this.editor.contours=this.editor.contours.concat(add);
+    this.editor.selContours=new Set();
+    for(let i=this.editor.contours.length-add.length;i<this.editor.contours.length;i++) this.editor.selContours.add(i);
+    this.editor.draw(); this.commitTarget(); this.syncPanels();
+  }
+  replaceWhole(){
+    if(this.targetGid<0 || !this.donorContours.length) return;
+    this.editor.contours=this.donorContours.map(c=>c.map(p=>({x:p.x,y:p.y,on:p.on})));
+    this.editor.selContours=new Set();
+    this.editor.draw(); this.commitTarget(); this.syncPanels();
+  }
+  commitTarget(){
+    if(this.targetGid<0||!this.font) return;
+    this.font.setEdited(this.targetGid, this.editor.contours);
+    this.refreshEdited();
+  }
+  syncPanels(){
+    this.$("replaceWhole").disabled=!(this.donorContours.length && this.targetGid>=0);
+    this.$("copyParts").disabled=!(this.donorSel.size && this.targetGid>=0);
+    this.editor._hud();
+  }
+  refreshEdited(){
+    const list=this.$("editedList");
+    const n=this.font?this.font.editedGlyphs.size:0;
+    this.$("countPill").textContent=`編集 ${n} 字`;
+    if(!n){ list.innerHTML=`<div class="empty">まだありません</div>`; return; }
+    list.innerHTML="";
+    const rev=new Map();
+    if(this.font){ for(const [cp,g] of this.font.cmapMap){ if(this.font.editedGlyphs.has(g)&&!rev.has(g)) rev.set(g,cp); } }
+    for(const gid of this.font.editedGlyphs.keys()){
+      const cp=rev.get(gid); const ch=cp?String.fromCodePoint(cp):"?";
+      const uni=cp?("U+"+cp.toString(16).toUpperCase().padStart(4,"0")):"—";
+      const item=document.createElement("div"); item.className="item"+(gid===this.targetGid?" active":"");
+      item.innerHTML=`<div class="ch">${ch}</div><div class="meta">#${gid}<br>${uni}</div><button class="rm" title="編集を取消">✕</button>`;
+      item.querySelector(".ch").onclick=item.querySelector(".meta").onclick=()=>{ if(cp){ this.$("targetInput").value=ch; this.openTarget(); } };
+      item.querySelector(".rm").onclick=(ev)=>{ ev.stopPropagation(); this.font.clearEdited(gid); if(gid===this.targetGid && cp) this.openTarget(); this.refreshEdited(); };
+      list.appendChild(item);
+    }
+  }
+
+  doExport(){
+    if(!this.font){ this.banner("exportBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    if(this.font.editedGlyphs.size===0){ this.banner("exportBanner","warn",USER_SETTINGS.strings.exportNoEdit); return; }
+    let out;
+    try{ out=this.font.export(); }
+    catch(err){ this.banner("exportBanner","err","書き出し処理でエラー: "+(err&&err.message||err)); return; }
+    if(!this._selfCheck(out)){ this.banner("exportBanner","err",USER_SETTINGS.strings.exportSelfFail); return; }
+    const base=(this.fontName||"font").replace(/\.[^.]+$/,"");
+    const outName=base+"-Kyujitai.ttf";
+    const blob=new Blob([out],{type:"font/ttf"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download=outName; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+    this.banner("exportBanner","ok",USER_SETTINGS.strings.exportOkSelf(outName));
+  }
+  _selfCheck(buf){
+    try{
+      const f2=new TTFFont(buf.buffer.slice(buf.byteOffset,buf.byteOffset+buf.byteLength));
+      if(f2.numGlyphs!==this.font.numGlyphs) return false;
+      for(const gid of this.font.editedGlyphs.keys()){
+        const expected=this.font.editedGlyphs.get(gid);
+        const got=f2._rawContours(gid,0);
+        if(got.length!==expected.length) return false;
+      }
+      return true;
+    }catch(e){ return false; }
+  }
+
+  saveProject(){
+    if(!this.font){ return; }
+    const data={ version:1, font:this.fontName||"", unitsPerEm:this.font.unitsPerEm, glyphs:{} };
+    const rev=new Map(); for(const [cp,g] of this.font.cmapMap){ if(this.font.editedGlyphs.has(g)&&!rev.has(g)) rev.set(g,cp); }
+    for(const [gid,cs] of this.font.editedGlyphs){ const cp=rev.get(gid); const key=cp!=null?("u"+cp):("g"+gid); data.glyphs[key]=cs; }
+    const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download=(this.fontName||"kyujitai").replace(/\.[^.]+$/,"")+"-work.json"; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+  async loadProject(file){
+    if(!this.font){ this.banner("fontBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    try{
+      const data=JSON.parse(await file.text());
+      let applied=0;
+      for(const key in data.glyphs){
+        let gid=-1;
+        if(key[0]==="u"){ const cp=parseInt(key.slice(1),10); gid=this.font.cmapMap.get(cp)??-1; }
+        else if(key[0]==="g"){ gid=parseInt(key.slice(1),10); }
+        if(gid>=0){ this.font.setEdited(gid, data.glyphs[key]); applied++; }
+      }
+      this.refreshEdited();
+      this.banner("fontBanner","ok",`作業を読み込みました（${applied} 字を復元）`);
+      if(this.targetChar) this.openTarget();
+    }catch(e){ this.banner("fontBanner","err","作業ファイルを読み込めませんでした。"); }
+  }
+}
+
+/* =========================================================================
+   INIT
+========================================================================= */
+document.addEventListener("DOMContentLoaded",()=>{
+  const app=new App();
+  window.__kyuji=app;
+  setTimeout(()=>app.editor.resize(),50);
+});
+</script>
+</body>
+</html>
