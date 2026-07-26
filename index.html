@@ -178,9 +178,46 @@ i.dot.todo{background:var(--ink-faint)}
 .modal p{color:var(--ink-dim);font-size:13px;margin:8px 0}
 .modal .code{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;color:var(--ink-dim);white-space:pre-wrap;margin:12px 0}
 
+/* ===== EXPORT PRE-CHECK modal ===== */
+.exp-modal{max-width:none;width:60vw;min-width:560px;height:83vh;min-height:440px;display:flex;flex-direction:column;padding:0;overflow:hidden}
+@media (max-width:900px){ .exp-modal{width:92vw;min-width:0;height:80vh} }
+.exp-head{padding:20px 22px 0;flex:none}
+.exp-head h2{margin:0 0 4px;font-size:17px}
+.exp-body{overflow:auto;padding:14px 22px 6px;display:flex;flex-direction:column;gap:14px}
+.exp-sec{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.exp-sec h3{margin:0 0 8px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);font-weight:600}
+.exp-row{display:flex;align-items:center;gap:10px;margin:7px 0}
+.exp-row label{flex:1;font-size:13px;color:var(--ink-dim)}
+.exp-row .val{font-size:13px;color:var(--ink);font-family:var(--mono);text-align:right;word-break:break-all}
+.exp-row input[type=number]{width:120px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 9px;font-family:var(--mono);font-size:13px;text-align:right}
+.exp-row input[type=number]:focus{outline:none;border-color:var(--edit)}
+.exp-row input.bad{border-color:var(--danger);background:rgba(242,102,90,.09)}
+.exp-cps{display:flex;flex-wrap:wrap;gap:8px}
+.exp-chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px;color:var(--ink-dim);cursor:pointer;user-select:none}
+.exp-chip input{accent-color:var(--edit)}
+.exp-chip.bad{border-color:var(--danger);color:#f2938a}
+.exp-note{font-size:12px;color:var(--ink-faint);margin:8px 0 0;line-height:1.6}
+.exp-ref{font-family:var(--mono);color:var(--ink-dim)}
+.exp-warn{font-size:12.5px;color:#f2938a;margin:8px 0 0;line-height:1.6;display:none}
+.exp-warn.on{display:block}
+.exp-adv{font-size:12.5px;color:#f3c982;margin:8px 0 0;line-height:1.6;display:none}
+.exp-adv.on{display:block}
+.exp-lh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
+.exp-lh label{font-size:13px;color:var(--ink-dim)}
+.exp-lh input[type=number]{width:72px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:6px 8px;font-family:var(--mono);font-size:13px;text-align:right}
+.exp-lh input[type=number]:focus{outline:none;border-color:var(--edit)}
+.exp-mgrp{border-top:1px solid var(--line);margin-top:10px;padding-top:9px}
+.exp-mtitle{font-size:12.5px;color:var(--ink);font-weight:600;margin:0 0 6px}
+.exp-mtitle .exp-ref{font-weight:400}
+.exp-readout{font-size:12.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:10px 0 0;line-height:1.7}
+.exp-opt{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink);margin:8px 0;cursor:pointer}
+.exp-opt input{accent-color:var(--edit);width:16px;height:16px}
+.exp-foot{display:flex;gap:8px;padding:14px 22px 20px;border-top:1px solid var(--line);flex:none}
+.exp-foot .btn{width:auto;flex:1}
+
 /* ===== HELP (large tabbed) modal ===== */
 .modal.help-modal{
-  max-width:none;width:60vw;min-width:560px;height:62vh;min-height:440px;
+  max-width:none;width:60vw;min-width:560px;height:83vh;min-height:440px;
   padding:0;display:flex;flex-direction:column;overflow:hidden
 }
 @media (max-width:900px){ .modal.help-modal{width:92vw;min-width:0;height:80vh} }
@@ -472,7 +509,18 @@ a.link:hover{text-decoration:underline}
         <div class="help-sec">
           <h3>対応フォントと確認</h3>
           <p>TrueType輪郭（glyf）の <b>.ttf</b> に対応（游明朝／游ゴシック／IPAex／Noto Sans JP static 等）。<b>CFF形式（.otf / Noto Sans CJK）は非対応</b>。可変フォント（VF）は既定インスタンスにのみ適用（静的化推奨）。</p>
+          <p><b>ベースに何を使うか（重要）</b>：漢字だけでなく<b>ラテン・かなも入った完全なフォント</b>をベースにしてください（PowerPoint埋め込み対策）。おすすめは <b>言語版「Noto Sans JP」（約1.7万字）</b>です。<b>pan-CJKの「Noto Sans CJK JP」は約6.5万字超</b>で、1つのTTFに収まる上限（65535グリフ）を超えるため<b>単一のTTFにはできません</b>（FontForgeで「単一化」しても『グリフが多すぎます』で失敗します）。CIDの下位フォント（Ideographs等）だけを取り出すと漢字専用になり、これがPowerPointで置換される一因になります。</p>
+          <p><b>中身がCFFの.ttfを渡された場合</b>（拡張子は.ttfでも実体はOTTO＝CFF）：本ツールは弾きます。FontForgeで開き、EMを2048にしてから「ファイル → フォントを出力 → TrueType(TTF)」で書き出すとglyf化されて使えるようになります（検証ダイアログが出たら「生成」で進めてOK）。</p>
           <p>書き出し後は FontForge か Windows で開いて表示を確認してください（本ツールも書き出し直後に内部で自己検証します）。配布用に整える手順は「OTF⇒TTF変換案内」タブを参照。</p>
+        </div>
+
+        <div class="help-sec">
+          <h3>外字ファイル（.tte）を Windows の IME に追加する</h3>
+          <p>「外字ファイルを書き出す（.tte）」で作られる .tte は、編集した字を <b>私用領域（PUA・U+E000〜E0FF）</b>に割り当てた外字（EUDC）フォントです。Windowsに登録すると、どのアプリでもIMEから入力できるようになります（Windows前提）。</p>
+          <p><span class="step-num">1</span><b>置き場所を決める</b>。書き出した .tte を分かりやすい場所（例 <span class="kbd">C:\Windows\Fonts\EUDC\MyGaiji.tte</span>）に置きます。EUDCフォルダが無ければ作成します。</p>
+          <p><span class="step-num">2</span><b>レジストリに登録する</b>。<span class="kbd">regedit</span> で <span class="kbd">HKEY_CURRENT_USER\EUDC\932</span> を開き（無ければ 932 キーを作成）、システム全体で使うなら文字列値 <span class="kbd">SystemDefaultEUDCFont</span> に .tte のフルパスを設定します。特定フォントにだけ紐づけるなら、値名を対象フォント名（例 <span class="kbd">游明朝</span>）にしてパスを設定します。<b>設定後はサインアウト／再起動</b>で反映されます。</p>
+          <p><span class="step-num">3</span><b>IMEで入力する</b>。Microsoft IMEで割り当てコード（例 <span class="kbd">E000</span>）を入力し <span class="kbd">F5</span> を押すと、コードポイントから外字を変換・入力できます。または「がいじ」と入力して <span class="kbd">F5</span>／<span class="kbd">Ctrl+F10</span> で <b>IMEパッド → 文字一覧</b> を開き、フォントに「全フォント（外字）」を選んで一覧から選びます。登録状況は <span class="kbd">charmap</span>（文字コード表）でフォントに「全フォント（外字）」を選んでも確認できます。</p>
+          <p class="hint" style="margin-top:10px">注意：Microsoftは .tte を手動コピー／レジストリ直接編集で入れる方法を正式サポートしていません（設定を誤るとサインインに支障が出ることがあります）。作業前に該当レジストリキーをエクスポートしてバックアップし、正式には <b>外字エディター（<span class="kbd">eudcedit</span>）→「ファイル → フォントのリンク」</b>での紐づけも検討してください。</p>
         </div>
       </div>
 
@@ -490,9 +538,12 @@ a.link:hover{text-decoration:underline}
         <div class="help-sec">
           <h3 class="donor-h">ステップ1：FontForgeでベースTTFを仕込む</h3>
           <p><span class="step-num">1</span>大元のOTF（例：Noto Sans JP）を FontForge で開く。</p>
-          <p><span class="step-num">2</span><b>フォント名を完全に独立させる</b>。「エレメント → フォント情報」の <b>「PS Names」</b>と<b>「TTF名」</b>の両方に独自名（例 <span class="kbd">Kyujitai-Regular</span>）を設定。<b>「TTF名」のスタイル（サブファミリー）は必ず <span class="kbd">Regular</span> のみ</b>に（Bold/Light 等が残ると配布先で不具合）。元フォントとの名前衝突・上書きを防ぎます。</p>
-          <p><span class="step-num">3</span><b>日本語フラグを直す</b>。「フォント情報 → OS/2 → 文字セット」で右下「コードページ」一覧を確認し、<b>「932, 日本語」だけ</b>を選択状態に。<b>「950, 繁体字中国語」など日本語以外が選ばれていたら Ctrl+クリックで解除</b>。ここが不具合の根本原因です。</p>
-          <p><span class="step-num">4</span>「ファイル → フォントを出力」で <b>TrueType(TTF)</b> を選び書き出す（例 <span class="kbd">Base_Kyujitai.ttf</span>）。中身は未編集でも、名前と言語フラグは配布用に整った状態になります。</p>
+          <p><span class="step-num">2</span><b>EM（unitsPerEm）を 2048 にする</b>。元OTFは通常 <b>1000</b>。TrueTypeでは <b>2048</b>（2の冪）が標準で、ヒント（グリッド合わせ）やレンダラの互換性が安定します。「エレメント → フォント情報 → 一般」で <b>「EMの大きさ」を 2048</b> に変更し、<b>アウトラインを一緒に拡大（スケール）する</b>指定で行います。重要：このとき <b>縦メトリクス（hhea / OS/2 Win / Typo / LineGap）も同じ倍率でスケール</b>されているか必ず確認してください。EMだけ変えて縦メトリクスが元（1000基準）のまま残ると、後述の<b>見切れ</b>や<b>行間の詰まり</b>の原因になります。</p>
+          <p><span class="step-num">3</span><b>先に一度 TrueType 形式へ変換する</b>。OTF（PostScript/CFF）のままだと「フォント情報」の<b>「TTF名」が選択・編集できない</b>ため、まず「ファイル → フォントを出力」で <b>TrueType(TTF)</b> を選んで書き出し、<b>その書き出したTTFを開き直します</b>。これで次のステップから「TTF名」を設定できるようになります。</p>
+          <p><span class="step-num">4</span><b>フォント名を完全に独立させる</b>。「エレメント → フォント情報」の <b>「PS Names」</b>と<b>「TTF名」</b>の両方に独自名（例 <span class="kbd">Kyujitai-Regular</span>）を設定。<b>「TTF名」のスタイル（サブファミリー）は必ず <span class="kbd">Regular</span> のみ</b>に（Bold/Light 等が残ると配布先で不具合）。なお「TTF名」の値は初期状態ではPostScript名に連動していて直接変更できないため、変更したい行の<b>「文字列」列のセルを右クリック →「PostScript名から切り離す」</b>を選んでから編集します。元フォントとの名前衝突・上書きを防ぎます。</p>
+          <p><span class="step-num">5</span><b>日本語フラグを直す</b>。「フォント情報 → OS/2 → 文字セット」で右下「コードページ」一覧を確認し、<b>「932, 日本語」だけ</b>を選択状態に。<b>「950, 繁体字中国語」など日本語以外が選ばれていたら Ctrl+クリックで解除</b>。ここが不具合の根本原因です。</p>
+          <p><span class="step-num">6</span><b>縦メトリクスは原則そのままでOK</b>。まっとうに作られたフォント（例：Noto Sans JP をglyf化したもの）は、hhea / OS/2 Win / Typo に<b>設計者が決めた適切な行の高さ</b>が既に入っています。基本は<b>触らない</b>のが正解です。<b>注意</b>：yMax/yMin は一部の特殊グリフのせいで極端に大きいことがあり、<b>「Win Ascent＝yMax」に合わせると行間が異常に広がります</b>。合わせるべきは全グリフ外周ではなく<b>実際に表示される文字の高さ</b>です。<b>実際に見切れる・行間が詰まる場合だけ</b>調整し、その際も普通の文字（漢字・かな）が収まる範囲に留めます。Wordの行高はUSE_TYPO_METRICS無効時に<b>Win値</b>で決まります。本ツールの「書き出し前の設定確認」は、この判定を<b>代表文字の実描画</b>で行い、既に十分なら何も変更しません（「推奨設定」を押しても縦メトリクスは膨らみません）。</p>
+          <p><span class="step-num">7</span>もう一度「ファイル → フォントを出力」で <b>TrueType(TTF)</b> を書き出す（例 <span class="kbd">Base_Kyujitai.ttf</span>）。中身は未編集でも、名前と言語フラグは配布用に整った状態になります。</p>
         </div>
 
         <div class="help-sec">
@@ -509,8 +560,10 @@ a.link:hover{text-decoration:underline}
           <h3 class="donor-h">配布前チェックリスト</h3>
           <div class="checklist">
             <span>独自フォント名を PS Names / TTF名 の両方に設定したか</span>
+            <span>EM（unitsPerEm）を 2048 にし、縦メトリクスも一緒にスケールしたか</span>
             <span>TTF名のスタイル（サブファミリー）が <span class="kbd">Regular</span> のみか</span>
             <span>OS/2 文字セットで「932, 日本語」のみ選択か（950等が混在していないか）</span>
+            <span>OS/2 の Win Ascent ≧ yMax、Win Descent ≧ |yMin| か（Word/PowerPointで上下が見切れない）</span>
             <span>編集は元OTFでなく「ベースTTF」を使ったか</span>
             <span>書き出したTTFを Word・PowerPoint 両方で実機テストしたか</span>
           </div>
@@ -529,6 +582,109 @@ a.link:hover{text-decoration:underline}
     <p class="hint" id="partsNote" style="margin:0 0 10px"></p>
     <div id="partsBody" style="max-height:60vh;overflow:auto"></div>
     <button class="btn" id="partsClose" style="margin-top:14px">閉じる</button>
+  </div>
+</div>
+
+<!-- ===== EXPORT PRE-CHECK MODAL ===== -->
+<div class="overlay" id="exportOverlay">
+  <div class="modal exp-modal">
+    <div class="exp-head">
+      <h2>書き出し前の設定確認</h2>
+      <p class="hint" style="margin:2px 0 0">ヘルプで規定しているフォント情報を確認できます。<b>赤枠は配布先で不具合が出る設定</b>です。「推奨設定にする」で自動修正できます。</p>
+    </div>
+    <div class="exp-body">
+      <div class="exp-sec">
+        <h3>登録名（PS Names / TTF名 · 表示のみ）</h3>
+        <div class="exp-row"><label>PostScript名（Fontname）</label><span class="val" id="expPsname">—</span></div>
+        <div class="exp-row"><label>フォント名（Family / TTF名1）</label><span class="val" id="expFamily">—</span></div>
+        <div class="exp-row"><label>スタイル（Subfamily / TTF名2）</label><span class="val" id="expSubfamily">—</span></div>
+        <div class="exp-row"><label>フルネーム（TTF名4）</label><span class="val" id="expFullName">—</span></div>
+        <div class="exp-row"><label>一意ID（TTF名3）</label><span class="val" id="expUniqueID">—</span></div>
+        <div class="exp-row"><label>バージョン（TTF名5）</label><span class="val" id="expVersion">—</span></div>
+        <div class="exp-row" id="expTypoFamRow" style="display:none"><label>優先ファミリー（TTF名16）</label><span class="val" id="expTypoFam">—</span></div>
+        <div class="exp-row" id="expTypoSubRow" style="display:none"><label>優先スタイル（TTF名17）</label><span class="val" id="expTypoSubfam">—</span></div>
+        <p class="exp-warn" id="expSubWarn">スタイルが <b>Regular</b> ではありません。FontForgeの「TTF名」でRegularのみにしてください（本ツールでは名前は変更できません）。</p>
+        <p class="exp-note">名前はFontForge側で設定する項目です（本ツールでは変更不可・確認のみ）。元フォントとの名前衝突を避けるため、独自名になっているか確認してください。</p>
+      </div>
+      <div class="exp-sec">
+        <h3>一般情報・OS/2 主要項目（表示のみ）</h3>
+        <div class="exp-row"><label>アウトライン形式</label><span class="val" id="expOutline">—</span></div>
+        <div class="exp-row"><label>EM（unitsPerEm）</label><span class="val" id="expUpmInfo">—</span></div>
+        <div class="exp-row"><label>グリフ数</label><span class="val" id="expGlyphs">—</span></div>
+        <div class="exp-row"><label>フォント外周（xMin,yMin〜xMax,yMax）</label><span class="val" id="expBbox">—</span></div>
+        <div class="exp-row"><label>バージョン番号（fontRevision）</label><span class="val" id="expRevision">—</span></div>
+        <div class="exp-row"><label>ウェイト（usWeightClass）</label><span class="val" id="expWeight">—</span></div>
+        <div class="exp-row"><label>埋め込み許可（fsType）</label><span class="val" id="expFsType">—</span></div>
+        <div class="exp-row"><label>スタイルフラグ（fsSelection）</label><span class="val" id="expFsSel">—</span></div>
+        <div class="exp-row"><label>制作者ID（achVendID）</label><span class="val" id="expVendor">—</span></div>
+      </div>
+      <div class="exp-sec">
+        <h3>行の高さ・見切れ（縦メトリクス · 編集可）</h3>
+        <p class="exp-note" style="margin-top:0">フォントには「1行の高さ」を決める数値が<b>3組</b>あり、アプリごとに使う組が違います：<b>Word/Windows＝Win</b>、<b>新しいアプリ＝Typo</b>（下のスイッチON時）、<b>Mac＝hhea</b>。数値が小さいと<b>行が詰まり</b>、グリフより小さいと<b>文字が見切れ</b>ます。</p>
+
+        <div class="exp-lh">
+          <label>行の高さをそろえる：</label>
+          <input type="number" id="expEmTarget" step="0.05" value="1.2"><span class="exp-ref">em</span>
+          <button class="btn donor" id="expApplyLH" style="width:auto;padding:6px 12px">この行高に合わせる</button>
+        </div>
+        <p class="exp-note">文字サイズの何倍を1行の高さにするか。<b>1.0＝文字ぴったり</b>／<b>1.2＝標準的な余裕</b>（Noto系の目安）。押すと下の3組を自動計算します（見切れも起きない値に調整）。</p>
+
+        <div class="exp-mgrp">
+          <div class="exp-mtitle">① Windows・Word 用（Win）<span class="exp-ref">— Wordの行高と描画範囲</span></div>
+          <div class="exp-row"><label>上（usWinAscent）</label><input type="number" id="expWinAsc"></div>
+          <div class="exp-row"><label>下（usWinDescent）</label><input type="number" id="expWinDesc"></div>
+        </div>
+
+        <div class="exp-mgrp">
+          <div class="exp-mtitle">② 新しいアプリ用（Typo）</div>
+          <label class="exp-opt"><input type="checkbox" id="expUseTypo">新しいアプリでこのTypo値を優先する（USE_TYPO_METRICS）</label>
+          <div class="exp-row"><label>上（Ascender）</label><input type="number" id="expTypoAsc"></div>
+          <div class="exp-row"><label>下（Descender・マイナス）</label><input type="number" id="expTypoDesc"></div>
+          <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expTypoGap"></div>
+        </div>
+
+        <div class="exp-mgrp">
+          <div class="exp-mtitle">③ Mac 用（hhea）</div>
+          <div class="exp-row"><label>上（Ascent）</label><input type="number" id="expHheaAsc"></div>
+          <div class="exp-row"><label>下（Descent・マイナス）</label><input type="number" id="expHheaDesc"></div>
+          <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expHheaGap"></div>
+        </div>
+
+        <p class="exp-readout" id="expLineReadout">—</p>
+        <p class="exp-note">参考：代表的な文字の実描画 上端=<span class="exp-ref" id="expInkTop">—</span> ／ 下端=<span class="exp-ref" id="expInkBot">—</span>（見切れ判定はこの実描画を基準にします）。全グリフの外周 yMax=<span class="exp-ref" id="expYMax">—</span>／yMin=<span class="exp-ref" id="expYMin">—</span>（unitsPerEm=<span class="exp-ref" id="expUpm">—</span>）。<b>通常フォントはこの欄を触らず既定のまま</b>で構いません（元の設計値が入っています）。</p>
+        <p class="exp-warn" id="expAscWarn">Win上/下が<b>実際に表示される文字</b>より小さいと、Word/PowerPointで<b>上下が見切れ</b>ます。上表の「実描画」以上にしてください（全グリフ外周のyMaxではなく実描画が基準です）。</p>
+        <p class="exp-adv" id="expEmWarn">EM（unitsPerEm）が <b>2048</b> ではありません（現在 <span class="exp-ref" id="expEmVal">—</span>）。TrueType配布では 2048 が標準です。FontForgeの <b>Element → Font Info → General → Em Size</b> を 2048 にし、<b>全アウトライン・全メトリクスを一緒にスケール</b>して作り直すのを推奨します（本ツールではEMは変更できません）。</p>
+      </div>
+      <div class="exp-sec">
+        <h3>コードページ（OS/2 · 編集可）</h3>
+        <div class="exp-cps">
+          <label class="exp-chip" id="expChip932"><input type="checkbox" id="expCp932">932 日本語（必須）</label>
+          <label class="exp-chip" id="expChip936"><input type="checkbox" id="expCp936">936 簡体字</label>
+          <label class="exp-chip" id="expChip949"><input type="checkbox" id="expCp949">949 韓国語</label>
+          <label class="exp-chip" id="expChip950"><input type="checkbox" id="expCp950">950 繁体字</label>
+        </div>
+        <p class="exp-warn" id="expCpWarn">日本語配布用は <b>932のみON</b> が推奨です。950等がONだとPowerPointで「選べるが適用されない」不具合が出ます。</p>
+        <p class="exp-note" id="expCpNone" style="display:none">このフォントのOS/2にはコードページ情報がありません（編集不可）。</p>
+      </div>
+      <div class="exp-sec">
+        <h3>スタイル・文字範囲（PowerPoint埋め込み対策）</h3>
+        <p class="exp-note" style="margin-top:0">PowerPointは埋め込みフォントの照合が厳しく、フォントの「自分が何者か」の情報が欠けていると、名前は正しいのに<b>別のフォントに置き換わって</b>字形が反映されないことがあります。下の2つを入れておくと、その照合が通りやすくなります。</p>
+        <label class="exp-opt"><input type="checkbox" id="expSetRegular">この字体を「標準（Regular）」として登録する（fsSelection）</label>
+        <label class="exp-opt"><input type="checkbox" id="expRecalcUR">収録している文字の範囲（ulUnicodeRange）を自動で設定し直す</label>
+        <p class="exp-warn" id="expRegWarn">このフォントは「標準（Regular）」の目印が無い状態です。PowerPointでの置き換わりの一因になり得ます。上のチェックを入れることを推奨します。</p>
+        <p class="exp-note">「標準として登録」＝Regularの目印(REGULARビット)を立てます。「文字範囲を設定し直す」＝実際に入っている文字（かな・漢字・英字など）に合わせて範囲情報を作り直します。どちらも太字/斜体ではない通常のフォント向けの安全な設定です。</p>
+      </div>
+      <div class="exp-sec">
+        <h3>同時出力</h3>
+        <label class="exp-opt"><input type="checkbox" id="expWithJson" checked>設定復元用のJSONも同時に出力する</label>
+        <label class="exp-opt"><input type="checkbox" id="expWithTte">外字ファイル（.tte）も同時に出力する</label>
+      </div>
+    </div>
+    <div class="exp-foot">
+      <button class="btn ghost" id="expCancel">キャンセル</button>
+      <button class="btn donor" id="expRecommend">推奨設定にする</button>
+      <button class="btn accent" id="expConfirm">この設定で書き出す</button>
+    </div>
   </div>
 </div>
 
@@ -590,6 +746,9 @@ const USER_SETTINGS = {
     ]
   }
 };
+
+const UNICODE_RANGE_BITS=[[0,0,127],[1,128,255],[2,256,383],[3,384,591],[4,592,687],[4,7424,7551],[4,7552,7615],[5,688,767],[5,42752,42783],[6,768,879],[6,7616,7679],[7,880,1023],[8,11392,11519],[9,1024,1279],[9,1280,1327],[9,11744,11775],[9,42560,42655],[10,1328,1423],[11,1424,1535],[12,42240,42559],[13,1536,1791],[13,1872,1919],[14,1984,2047],[15,2304,2431],[16,2432,2559],[17,2560,2687],[18,2688,2815],[19,2816,2943],[20,2944,3071],[21,3072,3199],[22,3200,3327],[23,3328,3455],[24,3584,3711],[25,3712,3839],[26,4256,4351],[26,11520,11567],[27,6912,7039],[28,4352,4607],[29,7680,7935],[29,11360,11391],[29,42784,43007],[30,7936,8191],[31,8192,8303],[31,11776,11903],[32,8304,8351],[33,8352,8399],[34,8400,8447],[35,8448,8527],[36,8528,8591],[37,8592,8703],[37,10224,10239],[37,10496,10623],[37,11008,11263],[38,8704,8959],[38,10752,11007],[38,10176,10223],[38,10624,10751],[39,8960,9215],[40,9216,9279],[41,9280,9311],[42,9312,9471],[43,9472,9599],[44,9600,9631],[45,9632,9727],[46,9728,9983],[47,9984,10175],[48,12288,12351],[49,12352,12447],[50,12448,12543],[50,12784,12799],[51,12544,12591],[51,12704,12735],[52,12592,12687],[53,43072,43135],[54,12800,13055],[55,13056,13311],[56,44032,55215],[57,55296,57343],[58,67840,67871],[59,19968,40959],[59,11904,12031],[59,12032,12255],[59,12272,12287],[59,13312,19903],[59,131072,173791],[59,12688,12703],[60,57344,63743],[61,12736,12783],[61,63744,64255],[61,194560,195103],[62,64256,64335],[63,64336,65023],[64,65056,65071],[65,65040,65055],[65,65072,65103],[66,65104,65135],[67,65136,65279],[68,65280,65519],[69,65520,65535],[70,3840,4095],[71,1792,1871],[72,1920,1983],[73,3456,3583],[74,4096,4255],[75,4608,4991],[75,4992,5023],[75,11648,11743],[76,5024,5119],[77,5120,5759],[78,5760,5791],[79,5792,5887],[80,6016,6143],[80,6624,6655],[81,6144,6319],[82,10240,10495],[83,40960,42127],[83,42128,42191],[84,5888,5919],[84,5920,5951],[84,5952,5983],[84,5984,6015],[85,66304,66351],[86,66352,66383],[87,66560,66639],[88,118784,119039],[88,119040,119295],[88,119296,119375],[89,119808,120831],[90,983040,1048573],[90,1048576,1114109],[91,65024,65039],[91,917760,917999],[92,917504,917631],[93,6400,6479],[94,6480,6527],[95,6528,6623],[96,6656,6687],[97,11264,11359],[98,11568,11647],[99,19904,19967],[100,43008,43055],[101,65536,65663],[101,65664,65791],[101,65792,65855],[102,65856,65935],[103,66432,66463],[104,66464,66527],[105,66640,66687],[106,66688,66735],[107,67584,67647],[108,68096,68191],[109,119552,119647],[110,73728,74751],[110,74752,74879],[111,119648,119679],[112,7040,7103],[113,7168,7247],[114,7248,7295],[115,43136,43231],[116,43264,43311],[117,43312,43359],[118,43520,43615],[119,65936,65999],[120,66000,66047],[121,66208,66271],[121,66176,66207],[121,67872,67903],[122,127024,127135],[122,126976,127023]];
+
 
 /* =========================================================================
    GAIJI BASE FONT (PUA U+E000–U+E0FF, cp932 flag, independent name)
@@ -766,6 +925,79 @@ class TTFFont{
   }
   glyphIdForChar(ch){ const cp=ch.codePointAt(0); const g=this.cmapMap.get(cp); return (g===undefined)?0:g; }
 
+  _readNameString(nameID){
+    const t=this.tables["name"]; if(!t) return "";
+    const dv=this.dv, base=t.offset;
+    const count=dv.getUint16(base+2), storage=base+dv.getUint16(base+4);
+    let best="", bestScore=-1;
+    for(let i=0;i<count;i++){
+      const r=base+6+i*12;
+      const pid=dv.getUint16(r), nid=dv.getUint16(r+6);
+      if(nid!==nameID) continue;
+      const len=dv.getUint16(r+8), off=dv.getUint16(r+10);
+      const score=(pid===3)?2:(pid===0)?1:0;
+      if(score<=bestScore) continue;
+      let s="";
+      if(pid===3||pid===0){ for(let j=0;j+1<len;j+=2) s+=String.fromCharCode(dv.getUint16(storage+off+j)); }
+      else { for(let j=0;j<len;j++) s+=String.fromCharCode(dv.getUint8(storage+off+j)); }
+      best=s; bestScore=score;
+    }
+    return best;
+  }
+  readFontInfo(){
+    const dv=this.dv, head=this.tables["head"], os2=this.tables["OS/2"], hhea=this.tables["hhea"];
+    const info={
+      upm:this.unitsPerEm,
+      yMin:dv.getInt16(head.offset+38), yMax:dv.getInt16(head.offset+42),
+      family:this._readNameString(1)||this._readNameString(16),
+      subfamily:this._readNameString(2)||this._readNameString(17),
+      psname:this._readNameString(6),
+      hasOS2:!!os2, winAscent:null, winDescent:null, hasCodePage:false, codePage1:0,
+      fsSelection:null, useTypoMetrics:false, typoAscender:null, typoDescender:null, typoLineGap:null,
+      hasHhea:!!hhea, hheaAscent:null, hheaDescent:null, hheaLineGap:null
+    };
+    if(os2){
+      const o=os2.offset;
+      info.os2Version=dv.getUint16(o);
+      info.fsSelection=dv.getUint16(o+62);
+      info.useTypoMetrics=!!(info.fsSelection & (1<<7));
+      info.typoAscender=dv.getInt16(o+68);
+      info.typoDescender=dv.getInt16(o+70);
+      info.typoLineGap=dv.getInt16(o+72);
+      info.winAscent=dv.getUint16(o+74);
+      info.winDescent=dv.getUint16(o+76);
+      info.hasCodePage=info.os2Version>=1 && os2.length>=82;
+      info.codePage1=info.hasCodePage?dv.getUint32(o+78):0;
+    }
+    if(hhea){
+      info.hheaAscent=dv.getInt16(hhea.offset+4);
+      info.hheaDescent=dv.getInt16(hhea.offset+6);
+      info.hheaLineGap=dv.getInt16(hhea.offset+8);
+    }
+    const macStyle=dv.getUint16(head.offset+44);
+    info.macStyle=macStyle;
+    info.isRegularBit = info.fsSelection!=null ? !!(info.fsSelection & 0x40) : false;
+    info.isBold = (info.fsSelection!=null && !!(info.fsSelection & 0x20)) || !!(macStyle&1);
+    info.isItalic = (info.fsSelection!=null && !!(info.fsSelection & 0x01)) || !!(macStyle&2);
+    info.uniqueID=this._readNameString(3);
+    info.fullName=this._readNameString(4);
+    info.version=this._readNameString(5);
+    info.typoFamily=this._readNameString(16);
+    info.typoSubfamily=this._readNameString(17);
+    info.headXMin=dv.getInt16(head.offset+36); info.headXMax=dv.getInt16(head.offset+40);
+    const rev=dv.getUint32(head.offset+4); info.fontRevision=(rev/65536).toFixed(3);
+    info.numGlyphs=this.numGlyphs;
+    info.outline=this.tables["glyf"]?"TrueType (glyf)":(this.tables["CFF "]?"CFF":"?");
+    if(os2){
+      const o=os2.offset;
+      info.usWeightClass=dv.getUint16(o+4);
+      info.fsType=dv.getUint16(o+8);
+      let vend=""; for(let k=0;k<4;k++){ const c=dv.getUint8(o+58+k); vend+=(c>=32&&c<127)?String.fromCharCode(c):" "; }
+      info.achVendID=vend.trim();
+    }
+    return info;
+  }
+
   glyphContours(gid){
     if(this.editedGlyphs.has(gid)) return this._clone(this.editedGlyphs.get(gid));
     return this._rawContours(gid, 0);
@@ -849,7 +1081,33 @@ class TTFFont{
     }
     out["glyf"]=glyf; out["loca"]=loca; out["head"]=head; out["maxp"]=maxp;
 
+    if(this.infoOverrides) this._applyInfoOverrides(out);
+
     return this._assemble(out);
+  }
+  _applyInfoOverrides(out){
+    const ov=this.infoOverrides, os2=out["OS/2"];
+    if(os2){
+      const dv=new DataView(os2.buffer, os2.byteOffset, os2.byteLength);
+      if(ov.fsSelection!=null) dv.setUint16(62, ov.fsSelection & 0xffff);
+      if(ov.typoAscender!=null) dv.setInt16(68, ov.typoAscender);
+      if(ov.typoDescender!=null) dv.setInt16(70, ov.typoDescender);
+      if(ov.typoLineGap!=null) dv.setInt16(72, ov.typoLineGap);
+      if(ov.winAscent!=null) dv.setUint16(74, ov.winAscent & 0xffff);
+      if(ov.winDescent!=null) dv.setUint16(76, ov.winDescent & 0xffff);
+      if(ov.codePage1!=null && os2.length>=82) dv.setUint32(78, ov.codePage1>>>0);
+      if(ov.unicodeRanges){
+        dv.setUint32(42, ov.unicodeRanges[0]>>>0); dv.setUint32(46, ov.unicodeRanges[1]>>>0);
+        dv.setUint32(50, ov.unicodeRanges[2]>>>0); dv.setUint32(54, ov.unicodeRanges[3]>>>0);
+      }
+    }
+    const hhea=out["hhea"];
+    if(hhea && ov.hheaAscent!=null){
+      const dv=new DataView(hhea.buffer, hhea.byteOffset, hhea.byteLength);
+      dv.setInt16(4, ov.hheaAscent);
+      dv.setInt16(6, ov.hheaDescent);
+      dv.setInt16(8, ov.hheaLineGap);
+    }
   }
   _assemble(tablesData){
     const tags=Object.keys(tablesData).sort();
@@ -1396,8 +1654,13 @@ class App{
     this.$("donorInput").addEventListener("keydown",e=>{ if(e.key==="Enter") this.openDonor(); });
     this.$("copyParts").onclick=()=>this.copyParts();
     this.$("replaceWhole").onclick=()=>this.replaceWhole();
-    this.$("exportBtn").onclick=()=>this.doExport();
+    this.$("exportBtn").onclick=()=>this.openExportModal();
     this.$("exportGaijiBtn").onclick=()=>this.doExportGaiji();
+    this.$("expCancel").onclick=()=>this.$("exportOverlay").classList.remove("show");
+    this.$("expRecommend").onclick=()=>this.applyRecommendedExport();
+    this.$("expConfirm").onclick=()=>this.runExport();
+    this.$("expApplyLH").onclick=()=>this.applyLineHeight();
+    for(const id of ["expWinAsc","expWinDesc","expTypoAsc","expTypoDesc","expTypoGap","expHheaAsc","expHheaDesc","expHheaGap","expUseTypo","expSetRegular","expCp932","expCp936","expCp949","expCp950"]) this.$(id).addEventListener("input",()=>this._evalExportWarnings());
     this.$("btnFit").onclick=()=>this.editor.fit();
     this.$("toolSelect").onclick=()=>this.setTool("select");
     this.$("toolTransform").onclick=()=>this.setTool("transform");
@@ -1409,7 +1672,7 @@ class App{
     this.$("partsBtn").onclick=()=>this.openParts();
     this.$("partsClose").onclick=()=>this.$("partsOverlay").classList.remove("show");
     this.$("helpOverlay").querySelectorAll(".help-tab").forEach(b=>{ b.onclick=()=>this.switchHelpTab(b.dataset.tab); });
-    for(const id of ["helpOverlay","partsOverlay"]){ const ov=this.$(id); ov.addEventListener("click",e=>{ if(e.target===ov) ov.classList.remove("show"); }); }
+    for(const id of ["helpOverlay","partsOverlay","exportOverlay"]){ const ov=this.$(id); ov.addEventListener("click",e=>{ if(e.target===ov) ov.classList.remove("show"); }); }
     this.$("btnGuide").onclick=()=>this.toggleGuide();
     this.$("btnUndo").onclick=()=>this.history.doUndo();
     this.$("btnRedo").onclick=()=>this.history.doRedo();
@@ -1594,6 +1857,7 @@ class App{
       this.font=new TTFFont(buf);
       this.fontName=file.name;
       this.recipes=new Map(); this.history.reset(); this.worklist=[]; this.gaijiMap=new Map();
+      this.exportInfo=null; this.exportOpts=null;
       this.$("fileState").textContent=file.name;
       let msg=`<div class="banner ok" style="margin-top:10px">${USER_SETTINGS.strings.fontOk(file.name,this.font.numGlyphs)}</div>`;
       if(this.font.isVariable) msg+=`<div class="banner warn" style="margin-top:8px">${USER_SETTINGS.strings.variableWarn}</div>`;
@@ -1613,7 +1877,14 @@ class App{
     if(!this.font){ this.banner("targetBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
     const raw=this.$("targetInput").value; if(!raw) return;
     const cps=[]; const seen=new Set(); const missing=[];
-    for(const c of [...raw]){ const cp=c.codePointAt(0); if(cp<0x3400) continue; if(seen.has(cp)) continue; seen.add(cp); if(this.font.cmapMap.has(cp)) cps.push(cp); else missing.push(c); }
+    for(const c of [...raw]){
+      let cp=c.codePointAt(0);
+      if(cp<0x3400 && !(cp>=0x2E80&&cp<=0x2FDF)) continue;
+      const g=this.font.cmapMap.get(cp);
+      if(g==null){ if(!seen.has(cp)){ seen.add(cp); missing.push(c); } continue; }
+      cp=this._preferredCpForGid(g,cp);
+      if(seen.has(cp)) continue; seen.add(cp); cps.push(cp);
+    }
     if(!cps.length){ this.banner("targetBanner","err", missing.length?`未収録: ${missing.join("")}`:USER_SETTINGS.strings.charMissing(raw)); return; }
     for(const cp of cps) this.addToWorklist(cp);
     const cp0=cps[0]; const ch0=String.fromCodePoint(cp0); const gid=this.font.cmapMap.get(cp0);
@@ -1799,8 +2070,7 @@ class App{
   refreshEdited(){
     const list=this.$("editedList");
     if(!this.font){ this.$("countPill").textContent="編集 0 字"; list.innerHTML=`<div class="empty">「対象の文字」で漢字を入力して開くと、ここに並びます</div>`; return; }
-    const rev=new Map();
-    for(const [cp,g] of this.font.cmapMap){ if(this.font.editedGlyphs.has(g)&&!rev.has(g)) rev.set(g,cp); }
+    const rev=this._editedReverseMap();
     for(const gid of this.font.editedGlyphs.keys()){ const cp=rev.get(gid); if(cp!=null && !this.worklist.includes(cp)) this.worklist.push(cp); }
     const editedCount=this.font.editedGlyphs.size;
     const total=this.worklist.length;
@@ -1827,7 +2097,195 @@ class App{
     }
   }
 
-  doExport(){
+  openExportModal(){
+    if(!this.font){ this.banner("exportBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    if(this.font.editedGlyphs.size===0){ this.banner("exportBanner","warn",USER_SETTINGS.strings.exportNoEdit); return; }
+    const info=this.exportInfo||this.font.readFontInfo();
+    this._expInfo=info;
+    this._expInk=this._textInkExtent();
+    this.$("expFamily").textContent=info.family||"（未設定）";
+    this.$("expSubfamily").textContent=info.subfamily||"（未設定）";
+    this.$("expPsname").textContent=info.psname||"（未設定）";
+    this.$("expFullName").textContent=info.fullName||"（未設定）";
+    this.$("expUniqueID").textContent=info.uniqueID||"（未設定）";
+    this.$("expVersion").textContent=info.version||"（未設定）";
+    this.$("expTypoFamRow").style.display=info.typoFamily?"":"none";
+    this.$("expTypoSubRow").style.display=info.typoSubfamily?"":"none";
+    this.$("expTypoFam").textContent=info.typoFamily||"";
+    this.$("expTypoSubfam").textContent=info.typoSubfamily||"";
+    this.$("expOutline").textContent=info.outline||"—";
+    this.$("expUpmInfo").textContent=info.upm;
+    this.$("expGlyphs").textContent=info.numGlyphs;
+    this.$("expBbox").textContent=`${info.headXMin}, ${info.yMin} 〜 ${info.headXMax}, ${info.yMax}`;
+    this.$("expRevision").textContent=info.fontRevision||"—";
+    this.$("expWeight").textContent=info.usWeightClass!=null?info.usWeightClass:"—";
+    this.$("expFsType").textContent=info.hasOS2?(info.fsType===0?"0（埋め込み自由）":("0x"+info.fsType.toString(16)+(info.fsType&0x0002?"（埋込禁止）":info.fsType&0x0004?"（印刷/プレビューのみ）":""))):"—";
+    this.$("expFsSel").textContent=info.hasOS2?("0x"+info.fsSelection.toString(16).padStart(4,"0")+`（Regular=${info.isRegularBit?"○":"×"} Bold=${info.isBold?"○":"×"} Italic=${info.isItalic?"○":"×"} UseTypo=${info.useTypoMetrics?"○":"×"}）`):"—";
+    this.$("expVendor").textContent=info.achVendID||"—";
+    this.$("expYMax").textContent=info.yMax; this.$("expYMin").textContent=info.yMin; this.$("expUpm").textContent=info.upm;
+    this.$("expInkTop").textContent=this._expInk.top; this.$("expInkBot").textContent=this._expInk.bottom;
+    this.$("expEmVal").textContent=info.upm;
+    this.$("expEmWarn").classList.toggle("on", !(info.upm===2048||info.upm===1024));
+    this.$("expWinAsc").value=info.winAscent!=null?info.winAscent:"";
+    this.$("expWinDesc").value=info.winDescent!=null?info.winDescent:"";
+    this.$("expTypoAsc").value=info.typoAscender!=null?info.typoAscender:"";
+    this.$("expTypoDesc").value=info.typoDescender!=null?info.typoDescender:"";
+    this.$("expTypoGap").value=info.typoLineGap!=null?info.typoLineGap:"";
+    this.$("expUseTypo").checked=!!info.useTypoMetrics;
+    this.$("expHheaAsc").value=info.hheaAscent!=null?info.hheaAscent:"";
+    this.$("expHheaDesc").value=info.hheaDescent!=null?info.hheaDescent:"";
+    this.$("expHheaGap").value=info.hheaLineGap!=null?info.hheaLineGap:"";
+    for(const id of ["expWinAsc","expWinDesc","expTypoAsc","expTypoDesc","expTypoGap","expUseTypo","expApplyLH","expEmTarget"]) this.$(id).disabled=!info.hasOS2;
+    for(const id of ["expHheaAsc","expHheaDesc","expHheaGap"]) this.$(id).disabled=!info.hasHhea;
+    const cp=info.codePage1||0;
+    this.$("expCp932").checked=!!(cp&(1<<17)); this.$("expCp936").checked=!!(cp&(1<<18));
+    this.$("expCp949").checked=!!(cp&(1<<19)); this.$("expCp950").checked=!!(cp&(1<<20));
+    const noCp=!info.hasCodePage;
+    for(const id of ["expCp932","expCp936","expCp949","expCp950"]) this.$(id).disabled=noCp;
+    this.$("expCpNone").style.display=noCp?"":"none";
+    const styleOK = !info.isBold && !info.isItalic;
+    this.$("expSetRegular").checked = info.hasOS2 && styleOK;
+    this.$("expSetRegular").disabled = !info.hasOS2 || !styleOK;
+    this.$("expRecalcUR").checked = info.hasOS2;
+    this.$("expRecalcUR").disabled = !info.hasOS2;
+    const hasOS2=info.hasOS2;
+    this.$("expWinAsc").disabled=!hasOS2; this.$("expWinDesc").disabled=!hasOS2;
+    this.$("expWithJson").checked=this.exportOpts?this.exportOpts.withJson:true;
+    this.$("expWithTte").checked=this.exportOpts?this.exportOpts.withTte:false;
+    this._evalExportWarnings();
+    this.$("exportOverlay").classList.add("show");
+  }
+  _evalExportWarnings(){
+    const info=this._expInfo; if(!info) return;
+    const wa=parseInt(this.$("expWinAsc").value,10), wd=parseInt(this.$("expWinDesc").value,10);
+    const ink=this._expInk||{top:info.yMax,bottom:info.yMin};
+    const ascBad=info.hasOS2 && !isNaN(wa) && wa<ink.top;
+    const descBad=info.hasOS2 && !isNaN(wd) && wd<Math.abs(ink.bottom);
+    this.$("expWinAsc").classList.toggle("bad",ascBad);
+    this.$("expWinDesc").classList.toggle("bad",descBad);
+    this.$("expAscWarn").classList.toggle("on",ascBad||descBad);
+    const c932=this.$("expCp932").checked, c936=this.$("expCp936").checked, c949=this.$("expCp949").checked, c950=this.$("expCp950").checked;
+    this.$("expChip932").classList.toggle("bad", info.hasCodePage && !c932);
+    this.$("expChip936").classList.toggle("bad", c936);
+    this.$("expChip949").classList.toggle("bad", c949);
+    this.$("expChip950").classList.toggle("bad", c950);
+    this.$("expCpWarn").classList.toggle("on", info.hasCodePage && (!c932||c936||c949||c950));
+    const willRegular=this.$("expSetRegular").checked;
+    const regBad = info.hasOS2 && !info.isBold && !info.isItalic && !info.isRegularBit && !willRegular;
+    this.$("expRegWarn").classList.toggle("on", regBad);
+    const subBad=(info.subfamily||"").trim().toLowerCase()!=="regular";
+    this.$("expSubWarn").classList.toggle("on",subBad);
+    this.$("expSubfamily").style.color=subBad?"#f2938a":"";
+    const upm=info.upm||1, numv=id=>parseInt(this.$(id).value,10);
+    const em=v=>isNaN(v)?"—":(v/upm).toFixed(2)+"em";
+    const winTot=numv("expWinAsc")+numv("expWinDesc");
+    const typoTot=numv("expTypoAsc")-numv("expTypoDesc")+numv("expTypoGap");
+    const hheaTot=numv("expHheaAsc")-numv("expHheaDesc")+numv("expHheaGap");
+    const useTypo=this.$("expUseTypo").checked;
+    const winApp=useTypo?typoTot:winTot;
+    this.$("expLineReadout").innerHTML=`いまの1行の高さの目安 → <b>Windows/Word ≈ ${em(winApp)}</b> ／ Mac ≈ ${em(hheaTot)}`
+      + (useTypo?`　<span class="exp-ref">（Typo優先ON：新アプリも ${em(typoTot)}）</span>`:`　<span class="exp-ref">（Win値 ${em(winTot)} を使用）</span>`);
+  }
+  _textInkExtent(){
+    let top=-Infinity, bottom=Infinity;
+    const scan=(cs)=>{ for(const c of cs) for(const p of c){ if(p.y>top)top=p.y; if(p.y<bottom)bottom=p.y; } };
+    for(const cs of this.font.editedGlyphs.values()) scan(cs);
+    for(const ch of "一国永東京二三十本文字言語日月山川人大小上下中位百千万愛"){ const g=this.font.cmapMap.get(ch.codePointAt(0)); if(g!=null) scan(this.font._rawContours(g,0)); }
+    for(const cp of [0x3042,0x3093,0x30A2,0x30F3,0x41,0x67,0x79]){ const g=this.font.cmapMap.get(cp); if(g!=null) scan(this.font._rawContours(g,0)); }
+    if(top===-Infinity){ const info=this.font.readFontInfo(); return {top:info.yMax, bottom:info.yMin}; }
+    return {top, bottom};
+  }
+  _computeUnicodeRanges(){
+    const cps=[...this.font.cmapMap.keys()].sort((a,b)=>a-b);
+    const has=(s,e)=>{
+      let lo=0,hi=cps.length-1,ans=-1;
+      while(lo<=hi){ const mid=(lo+hi)>>1; if(cps[mid]>=s){ans=mid;hi=mid-1;} else lo=mid+1; }
+      return ans>=0 && cps[ans]<=e;
+    };
+    const bits=new Set();
+    for(const [bit,s,e] of UNICODE_RANGE_BITS){ if(bits.has(bit)) continue; if(has(s,e)) bits.add(bit); }
+    const r=[0,0,0,0];
+    for(const b of bits){ r[b>>5]|=(1<<(b&31)); }
+    return r.map(x=>x>>>0);
+  }
+  applyLineHeight(){
+    const info=this._expInfo; if(!info||!info.hasOS2) return;
+    const ink=this._expInk||{top:info.yMax,bottom:info.yMin};
+    const upm=info.upm, inkTop=Math.max(1,ink.top), inkBot=Math.abs(ink.bottom), need=inkTop+inkBot;
+    let em=parseFloat(this.$("expEmTarget").value); if(isNaN(em)||em<=0) em=1.2;
+    let total=Math.round(em*upm); if(total<need) total=need;
+    let asc=Math.round(total*inkTop/need); if(asc<inkTop) asc=inkTop;
+    let desc=total-asc; if(desc<inkBot){ desc=inkBot; asc=total-desc; }
+    this.$("expWinAsc").value=asc; this.$("expWinDesc").value=desc;
+    if(info.hasHhea){ this.$("expHheaAsc").value=asc; this.$("expHheaDesc").value=-desc; this.$("expHheaGap").value=0; }
+    const tAsc=Math.round(upm*inkTop/need), tDesc=upm-tAsc;
+    this.$("expTypoAsc").value=tAsc; this.$("expTypoDesc").value=-tDesc; this.$("expTypoGap").value=Math.max(0,total-upm);
+    this.$("expUseTypo").checked=true;
+    this._evalExportWarnings();
+  }
+  applyRecommendedExport(){
+    const info=this._expInfo; if(!info) return;
+    const ink=this._expInk||{top:info.yMax,bottom:info.yMin};
+    if(info.hasOS2){
+      this.$("expWinAsc").value=Math.max(parseInt(this.$("expWinAsc").value,10)||0, ink.top);
+      this.$("expWinDesc").value=Math.max(parseInt(this.$("expWinDesc").value,10)||0, Math.abs(ink.bottom));
+      if(!info.isBold && !info.isItalic) this.$("expSetRegular").checked=true;
+      this.$("expRecalcUR").checked=true;
+    }
+    if(info.hasCodePage){ this.$("expCp932").checked=true; this.$("expCp936").checked=false; this.$("expCp949").checked=false; this.$("expCp950").checked=false; }
+    this._evalExportWarnings();
+  }
+  _gatherExportInfo(){
+    const info=Object.assign({},this._expInfo);
+    const cS=v=>Math.max(-32768,Math.min(32767,v|0));
+    const cU=v=>Math.max(0,Math.min(65535,v|0));
+    const rd=id=>{ const n=parseInt(this.$(id).value,10); return isNaN(n)?null:n; };
+    let v;
+    if((v=rd("expWinAsc"))!=null) info.winAscent=cU(v);
+    if((v=rd("expWinDesc"))!=null) info.winDescent=cU(v);
+    if((v=rd("expTypoAsc"))!=null) info.typoAscender=cS(v);
+    if((v=rd("expTypoDesc"))!=null) info.typoDescender=cS(v);
+    if((v=rd("expTypoGap"))!=null) info.typoLineGap=cS(v);
+    if(info.hasHhea){
+      if((v=rd("expHheaAsc"))!=null) info.hheaAscent=cS(v);
+      if((v=rd("expHheaDesc"))!=null) info.hheaDescent=cS(v);
+      if((v=rd("expHheaGap"))!=null) info.hheaLineGap=cS(v);
+    }
+    if(info.fsSelection!=null){
+      let fs=info.fsSelection;
+      if(this.$("expUseTypo").checked) fs|=(1<<7); else fs&=~(1<<7);
+      if(this.$("expSetRegular").checked){ fs|=0x40; fs&=~0x01; fs&=~0x20; fs&=~0x200; }
+      info.fsSelection=fs>>>0; info.useTypoMetrics=this.$("expUseTypo").checked;
+    }
+    info.recalcUR=this.$("expRecalcUR").checked;
+    if(info.hasCodePage){
+      let cp=info.codePage1||0;
+      const setBit=(b,on)=>{ if(on) cp|=(1<<b); else cp&=~(1<<b); };
+      setBit(17,this.$("expCp932").checked); setBit(18,this.$("expCp936").checked);
+      setBit(19,this.$("expCp949").checked); setBit(20,this.$("expCp950").checked);
+      info.codePage1=cp>>>0;
+    }
+    return info;
+  }
+  runExport(){
+    const info=this._gatherExportInfo();
+    this.exportInfo=info;
+    const withJson=this.$("expWithJson").checked, withTte=this.$("expWithTte").checked;
+    this.exportOpts={withJson,withTte};
+    this.font.infoOverrides = info.hasOS2 ? {
+      winAscent:info.winAscent, winDescent:info.winDescent,
+      codePage1:info.hasCodePage?info.codePage1:null,
+      fsSelection:info.fsSelection,
+      typoAscender:info.typoAscender, typoDescender:info.typoDescender, typoLineGap:info.typoLineGap,
+      hheaAscent:info.hasHhea?info.hheaAscent:null, hheaDescent:info.hasHhea?info.hheaDescent:null, hheaLineGap:info.hasHhea?info.hheaLineGap:null,
+      unicodeRanges: info.recalcUR ? this._computeUnicodeRanges() : null
+    } : null;
+    this.$("exportOverlay").classList.remove("show");
+    const stamp=this._stamp();
+    this.doExport({withJson,stamp});
+    if(withTte) this.doExportGaiji({stamp});
+  }
+  doExport(opts={}){
     if(!this.font){ this.banner("exportBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
     if(this.font.editedGlyphs.size===0){ this.banner("exportBanner","warn",USER_SETTINGS.strings.exportNoEdit); return; }
     let out;
@@ -1835,11 +2293,16 @@ class App{
     catch(err){ this.banner("exportBanner","err","書き出し処理でエラー: "+(err&&err.message||err)); return; }
     if(!this._selfCheck(out)){ this.banner("exportBanner","err",USER_SETTINGS.strings.exportSelfFail); return; }
     const base=(this.fontName||"font").replace(/\.[^.]+$/,"");
-    const outName=base+"-Kyujitai.ttf";
-    const blob=new Blob([out],{type:"font/ttf"});
-    const url=URL.createObjectURL(blob); const a=document.createElement("a");
-    a.href=url; a.download=outName; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
-    this.banner("exportBanner","ok",USER_SETTINGS.strings.exportOkSelf(outName));
+    const stamp=opts.stamp||this._stamp();
+    const outName=base+"-edited-"+stamp+".ttf";
+    this._downloadBlob(new Blob([out],{type:"font/ttf"}),outName);
+    let msg=USER_SETTINGS.strings.exportOkSelf(outName);
+    if(opts.withJson!==false){
+      const jsonName=base+"-work-"+stamp+".json";
+      this._downloadBlob(new Blob([JSON.stringify(this._projectData())],{type:"application/json"}),jsonName);
+      msg+=` ／ ${jsonName} も保存`;
+    }
+    this.banner("exportBanner","ok",msg);
   }
   _selfCheck(buf){
     try{
@@ -1891,7 +2354,7 @@ class App{
       return true;
     }catch(e){ return false; }
   }
-  doExportGaiji(){
+  doExportGaiji(opts={}){
     const G=USER_SETTINGS.gaiji;
     if(!this.font){ this.banner("gaijiBanner","warn",G.needFont); return; }
     if(this.font.editedGlyphs.size===0){ this.banner("gaijiBanner","warn",G.noEdit); return; }
@@ -1913,25 +2376,56 @@ class App{
     catch(e){ this.banner("gaijiBanner","err","外字書き出しでエラー: "+(e&&e.message||e)); return; }
     if(!this._selfCheckOn(gf,out)){ this.banner("gaijiBanner","err",G.selfFail); return; }
     const base=(this.fontName||"font").replace(/\.[^.]+$/,"");
-    const outName=base+"-Gaiji.tte";
-    const blob=new Blob([out],{type:"application/octet-stream"});
-    const url=URL.createObjectURL(blob); const a=document.createElement("a");
-    a.href=url; a.download=outName; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+    const outName=base+"-edited-"+(opts.stamp||this._stamp())+".tte";
+    this._downloadBlob(new Blob([out],{type:"application/octet-stream"}),outName);
     this.banner("gaijiBanner","ok",G.okSelf(outName,n));
   }
 
-  saveProject(){
-    if(!this.font){ return; }
+  _cpRank(cp){
+    if(cp>=0x2E80&&cp<=0x2FDF) return 2;
+    if(cp>=0xF900&&cp<=0xFAFF) return 1;
+    return 0;
+  }
+  _preferredCpForGid(gid,fallback){
+    let best=fallback, bestRank=this._cpRank(fallback);
+    for(const [cp,g] of this.font.cmapMap){
+      if(g!==gid) continue;
+      const r=this._cpRank(cp);
+      if(r<bestRank){ best=cp; bestRank=r; }
+    }
+    return best;
+  }
+  _editedReverseMap(){
+    const worklistSet=new Set(this.worklist);
+    const rev=new Map();
+    for(const [cp,g] of this.font.cmapMap){
+      if(!this.font.editedGlyphs.has(g)) continue;
+      const cur=rev.get(g);
+      if(cur==null){ rev.set(g,cp); continue; }
+      const wa=worklistSet.has(cp), wb=worklistSet.has(cur);
+      if(wa!==wb){ if(wa) rev.set(g,cp); continue; }
+      if(this._cpRank(cp)<this._cpRank(cur)) rev.set(g,cp);
+    }
+    return rev;
+  }
+  _stamp(){ const d=new Date(); const p=n=>String(n).padStart(2,"0"); return p(d.getFullYear()%100)+p(d.getMonth()+1)+p(d.getDate())+p(d.getHours())+p(d.getMinutes()); }
+  _projectData(){
     const data={ version:2, font:this.fontName||"", unitsPerEm:this.font.unitsPerEm, glyphs:{}, recipes:{}, gaijiMap:{} };
-    const rev=new Map(); for(const [cp,g] of this.font.cmapMap){ if(this.font.editedGlyphs.has(g)&&!rev.has(g)) rev.set(g,cp); }
+    const rev=this._editedReverseMap();
     for(const [gid,cs] of this.font.editedGlyphs){ const cp=rev.get(gid); const key=cp!=null?("u"+cp):("g"+gid); data.glyphs[key]=cs; }
     for(const [gid,r] of this.recipes){ const cp=rev.get(gid); if(cp!=null) data.recipes["u"+cp]=r; }
     this._syncGaijiMap();
     for(const [cp,pua] of this.gaijiMap) data.gaijiMap["u"+cp]=pua.toString(16).toUpperCase();
-    const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+    return data;
+  }
+  _downloadBlob(blob,name){
     const url=URL.createObjectURL(blob); const a=document.createElement("a");
-    a.href=url; a.download=(this.fontName||"kyujitai").replace(/\.[^.]+$/,"")+"-work.json"; a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+  saveProject(){
+    if(!this.font){ return; }
+    const blob=new Blob([JSON.stringify(this._projectData())],{type:"application/json"});
+    this._downloadBlob(blob,(this.fontName||"kyujitai").replace(/\.[^.]+$/,"")+"-work.json");
   }
   async loadProject(file){
     if(!this.font){ this.banner("fontBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
@@ -1942,7 +2436,7 @@ class App{
         let gid=-1, cp=null;
         if(key[0]==="u"){ cp=parseInt(key.slice(1),10); gid=this.font.cmapMap.get(cp)??-1; }
         else if(key[0]==="g"){ gid=parseInt(key.slice(1),10); }
-        if(gid>=0){ this.font.setEdited(gid, data.glyphs[key]); applied++; if(cp!=null) this.addToWorklist(cp); }
+        if(gid>=0){ this.font.setEdited(gid, data.glyphs[key]); applied++; if(cp!=null){ cp=this._preferredCpForGid(gid,cp); this.addToWorklist(cp); } }
       }
       if(data.recipes){ for(const key in data.recipes){ if(key[0]==="u"){ const cp=parseInt(key.slice(1),10); const gid=this.font.cmapMap.get(cp); if(gid!=null) this.recipes.set(gid,data.recipes[key]); } } }
       if(data.gaijiMap){ this.gaijiMap=new Map(); for(const key in data.gaijiMap){ if(key[0]==="u"){ const cp=parseInt(key.slice(1),10); const pua=parseInt(data.gaijiMap[key],16); if(!isNaN(cp)&&!isNaN(pua)) this.gaijiMap.set(cp,pua); } } }
