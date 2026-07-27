@@ -185,7 +185,7 @@ i.dot.todo{background:var(--ink-faint)}
 .exp-head h2{margin:0 0 4px;font-size:17px}
 .exp-body{overflow:auto;padding:14px 22px 6px;display:flex;flex-direction:column;gap:14px}
 .exp-sec{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-.exp-sec h3{margin:0 0 8px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);font-weight:600}
+.exp-sec h3{margin:0 0 12px;font-size:16px;letter-spacing:.01em;text-transform:none;color:var(--edit);font-weight:700;padding-bottom:9px;border-bottom:1px solid var(--line)}
 .exp-row{display:flex;align-items:center;gap:10px;margin:7px 0}
 .exp-row label{flex:1;font-size:13px;color:var(--ink-dim)}
 .exp-row .val{font-size:13px;color:var(--ink);font-family:var(--mono);text-align:right;word-break:break-all}
@@ -202,10 +202,6 @@ i.dot.todo{background:var(--ink-faint)}
 .exp-warn.on{display:block}
 .exp-adv{font-size:12.5px;color:#f3c982;margin:8px 0 0;line-height:1.6;display:none}
 .exp-adv.on{display:block}
-.exp-details{margin-top:10px;border-top:1px solid var(--line);padding-top:6px}
-.exp-details summary{cursor:pointer;font-size:12.5px;color:var(--donor);font-weight:600;padding:6px 2px;list-style:revert;user-select:none}
-.exp-details summary:hover{color:var(--ink)}
-.exp-details[open] summary{margin-bottom:6px}
 .exp-lh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
 .exp-lh label{font-size:13px;color:var(--ink-dim)}
 .exp-lh input[type=number]{width:72px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:6px 8px;font-family:var(--mono);font-size:13px;text-align:right}
@@ -293,7 +289,6 @@ a.link:hover{text-decoration:underline}
     <span class="count-pill" id="countPill">編集 0 字</span>
     <input type="file" id="fileInput" accept=".ttf,.ttc" hidden>
     <button class="btn ghost" id="loadBtn" style="width:auto">フォントを開く</button>
-    <button class="btn donor" id="bulkConvert" style="width:auto">未編集を旧字体へ一括変換</button>
     <button class="btn ghost" id="helpBtn" style="width:auto">ヘルプ</button>
   </header>
 
@@ -369,6 +364,7 @@ a.link:hover{text-decoration:underline}
         </div>
 
         <div class="block" id="editedBlock">
+          <button class="btn donor" id="bulkConvert" style="margin-bottom:10px">旧字体へ一括変換</button>
           <h3>編集リスト</h3>
           <div id="bulkBanner"></div>
           <div class="list-legend"><span><i class="dot done"></i>編集済み</span><span><i class="dot todo"></i>未編集</span></div>
@@ -413,13 +409,8 @@ a.link:hover{text-decoration:underline}
 
         <div class="block">
           <h3>5. 書き出し</h3>
-          <button class="btn accent" id="exportBtn" disabled>TTFを書き出す</button>
+          <button class="btn accent" id="exportBtn" disabled>データを書き出す</button>
           <div id="exportBanner"></div>
-          <p class="hint" style="margin-top:8px">編集した字だけを差し替え、他のグリフ・cmap・IVSは元のまま温存します（A方式）。</p>
-          <div class="divider" style="margin:12px 0"></div>
-          <button class="btn ghost" id="exportGaijiBtn" disabled>外字ファイルを書き出す（.tte）</button>
-          <div id="gaijiBanner"></div>
-          <p class="hint" style="margin-top:8px">編集した字を U+E000 から順に私用領域(PUA)へ割り当て、Windows外字(EUDC)用の .tte を作成します。使用側でIMEへの外字登録／EUDC登録が必要です。正規Unicodeを持つ旧字体の配布には通常のTTF書き出しを使ってください。</p>
         </div>
 
         <div class="block">
@@ -434,7 +425,7 @@ a.link:hover{text-decoration:underline}
           </div>
           <input type="file" id="projInput" accept=".json" hidden>
           <input type="file" id="reuseInput" accept=".json" hidden>
-          <p class="hint" style="margin-top:8px">「別フォントへ流用」は別フォントを開いた状態で使うと、旧字体化を自動で再現します。</p>
+          <p class="hint" style="margin-top:8px">別フォントを開いた状態で設定JSONを読み込むと、JSONに記録された編集記録を基に旧字体化を自動で再現します。</p>
         </div>
       </div>
     </aside>
@@ -472,7 +463,7 @@ a.link:hover{text-decoration:underline}
         <div class="help-sec">
           <h3>旧字体候補・一括変換・部品パレット</h3>
           <p><b>旧字体候補</b>：対象文字に旧字体・異体字（別コード or IVS）があれば右上に一覧表示。複数あるときは字形を見て選べます。「置換」で丸ごと、「借用」で部品取りに使えます。</p>
-          <p><b>一括変換</b>（上部の橙ボタン「未編集を旧字体へ一括変換」）：未編集の字を候補で自動変換します。候補が複数ある字や文脈依存の字（弁＝辨/瓣/辯、余、予 など）は自動変換せず、右の候補一覧から手動で選ぶ運用です。</p>
+          <p><b>一括変換</b>（編集リスト上部の橙ボタン「旧字体へ一括変換」）：未編集の字を候補で自動変換します。候補が複数ある字や文脈依存の字（弁＝辨/瓣/辯、余、予 など）は自動変換せず、右の候補一覧から手動で選ぶ運用です。</p>
           <p><b>部品パレット</b>：右カラム「3. ドナー」の「部品パレットから選ぶ」で、旧字体作成によく使う偏旁・要素を一覧から選べます。字形は読み込んだフォントから採るので、明朝／ゴシック等に自動で揃います。</p>
         </div>
 
@@ -675,40 +666,47 @@ a.link:hover{text-decoration:underline}
         <p class="exp-warn" id="expAscWarn">Win上/下が<b>実際に表示される文字</b>より小さいと、Word/PowerPointで<b>上下が見切れ</b>ます。下の詳細を開いて「実描画」以上にしてください。</p>
         <p class="exp-adv" id="expEmWarn">EM（unitsPerEm）が <b>2048</b> ではありません（現在 <span class="exp-ref" id="expEmVal">—</span>）。TrueType配布では 2048 が標準です。FontForgeの <b>Element → Font Info → General → Em Size</b> を 2048 にし、<b>全アウトライン・全メトリクスを一緒にスケール</b>して作り直すのを推奨します（本ツールではEMは変更できません）。</p>
 
-        <details class="exp-details">
-          <summary>行間・縦メトリクスを手動で調整する（通常は不要）</summary>
+        <div class="exp-mgrp">
+          <div class="exp-mtitle">行間・縦メトリクスを手動で調整する（通常は不要）</div>
           <p class="exp-note">フォントには「1行の高さ」を決める数値が<b>3組</b>あり、アプリごとに使う組が違います：<b>Word/Windows＝Win</b>、<b>新しいアプリ＝Typo</b>（下のスイッチON時）、<b>Mac＝hhea</b>。数値が小さいと<b>行が詰まり</b>、グリフより小さいと<b>文字が見切れ</b>ます。<b>行間が明らかに変なときだけ</b>触ってください。</p>
-
           <div class="exp-lh">
             <label>行の高さをそろえる：</label>
             <input type="number" id="expEmTarget" step="0.05" value="1.2"><span class="exp-ref">em</span>
             <button class="btn donor" id="expApplyLH" style="width:auto;padding:6px 12px">この行高に合わせる</button>
           </div>
           <p class="exp-note"><b>正しく作ったフォントでは押さないでください</b>（元の設計値を上書きし、行間がずれます）。1.0＝文字ぴったり／1.2＝標準的な余裕。押すと下の3組を自動計算します。</p>
+        </div>
 
-          <div class="exp-mgrp">
-            <div class="exp-mtitle">① Windows・Word 用（Win）<span class="exp-ref">— Wordの行高と描画範囲</span></div>
-            <div class="exp-row"><label>上（usWinAscent）</label><input type="number" id="expWinAsc"></div>
-            <div class="exp-row"><label>下（usWinDescent）</label><input type="number" id="expWinDesc"></div>
+        <div class="exp-mgrp">
+          <div class="exp-mtitle">① Windows・Word 用（Win）<span class="exp-ref">— Wordの行高と描画範囲</span></div>
+          <div class="exp-row"><label>上（usWinAscent）</label><input type="number" id="expWinAsc"></div>
+          <div class="exp-row"><label>下（usWinDescent）</label><input type="number" id="expWinDesc"></div>
+        </div>
+
+        <div class="exp-mgrp">
+          <div class="exp-mtitle">② 新しいアプリ用（Typo）</div>
+          <label class="exp-opt"><input type="checkbox" id="expUseTypo">新しいアプリでこのTypo値を優先する（USE_TYPO_METRICS）</label>
+          <div class="exp-row"><label>上（Ascender）</label><input type="number" id="expTypoAsc"></div>
+          <div class="exp-row"><label>下（Descender・マイナス）</label><input type="number" id="expTypoDesc"></div>
+          <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expTypoGap"></div>
+        </div>
+
+        <div class="exp-mgrp">
+          <div class="exp-mtitle">③ Mac 用（hhea）</div>
+          <div class="exp-row"><label>上（Ascent）</label><input type="number" id="expHheaAsc"></div>
+          <div class="exp-row"><label>下（Descent・マイナス）</label><input type="number" id="expHheaDesc"></div>
+          <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expHheaGap"></div>
+        </div>
+
+        <p class="exp-note">参考：代表的な文字の実描画 上端=<span class="exp-ref" id="expInkTop">—</span> ／ 下端=<span class="exp-ref" id="expInkBot">—</span>（見切れ判定はこの実描画が基準）。全グリフの外周 yMax=<span class="exp-ref" id="expYMax">—</span>／yMin=<span class="exp-ref" id="expYMin">—</span>（unitsPerEm=<span class="exp-ref" id="expUpm">—</span>）。</p>
+        <div class="exp-mgrp">
+          <div class="exp-mtitle">変更前 ⇒ 変更後の比較</div>
+          <p class="exp-readout" id="expDiffReadout">数値を変更した際、ここに元の値との比較が表示されます。</p>
+          <div class="exp-lh" id="expRestoreRow" style="margin-top:8px">
+            <button class="btn ghost" id="expRestoreMetrics" style="width:auto;padding:6px 12px">元の数値に戻す</button>
+            <span class="exp-ref">モーダルを開いた時点の数値に戻します</span>
           </div>
-
-          <div class="exp-mgrp">
-            <div class="exp-mtitle">② 新しいアプリ用（Typo）</div>
-            <label class="exp-opt"><input type="checkbox" id="expUseTypo">新しいアプリでこのTypo値を優先する（USE_TYPO_METRICS）</label>
-            <div class="exp-row"><label>上（Ascender）</label><input type="number" id="expTypoAsc"></div>
-            <div class="exp-row"><label>下（Descender・マイナス）</label><input type="number" id="expTypoDesc"></div>
-            <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expTypoGap"></div>
-          </div>
-
-          <div class="exp-mgrp">
-            <div class="exp-mtitle">③ Mac 用（hhea）</div>
-            <div class="exp-row"><label>上（Ascent）</label><input type="number" id="expHheaAsc"></div>
-            <div class="exp-row"><label>下（Descent・マイナス）</label><input type="number" id="expHheaDesc"></div>
-            <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expHheaGap"></div>
-          </div>
-
-          <p class="exp-note">参考：代表的な文字の実描画 上端=<span class="exp-ref" id="expInkTop">—</span> ／ 下端=<span class="exp-ref" id="expInkBot">—</span>（見切れ判定はこの実描画が基準）。全グリフの外周 yMax=<span class="exp-ref" id="expYMax">—</span>／yMin=<span class="exp-ref" id="expYMin">—</span>（unitsPerEm=<span class="exp-ref" id="expUpm">—</span>）。</p>
-        </details>
+        </div>
       </div>
       <div class="exp-sec">
         <h3>コードページ（OS/2 · 編集可）</h3>
@@ -730,9 +728,20 @@ a.link:hover{text-decoration:underline}
         <p class="exp-note">「標準として登録」＝Regularの目印(REGULARビット)を立てます。「文字範囲を設定し直す」＝実際に入っている文字（かな・漢字・英字など）に合わせて範囲情報を作り直します。どちらも太字/斜体ではない通常のフォント向けの安全な設定です。</p>
       </div>
       <div class="exp-sec">
-        <h3>同時出力</h3>
+        <h3>同時出力（TTFと一緒に）</h3>
         <label class="exp-opt"><input type="checkbox" id="expWithJson" checked>設定復元用のJSONも同時に出力する</label>
         <label class="exp-opt"><input type="checkbox" id="expWithTte">外字ファイル（.tte）も同時に出力する</label>
+        <label class="exp-opt"><input type="checkbox" id="expWithChars">編集済みの漢字一覧（.txt）も同時に出力する</label>
+      </div>
+      <div class="exp-sec">
+        <h3>個別に書き出す（TTFなしで単体出力）</h3>
+        <button class="btn ghost" id="exportGaijiBtn">外字ファイルを書き出す（.tte）</button>
+        <div id="gaijiBanner"></div>
+        <p class="exp-note" style="margin-top:8px">編集した字を U+E000 から順に私用領域(PUA)へ割り当て、Windows外字(EUDC)用の .tte を作成します。使用側でIMEへの外字登録／EUDC登録が必要です。正規Unicodeを持つ旧字体の配布には通常のTTF書き出しを使ってください。</p>
+        <div class="divider" style="margin:12px 0"></div>
+        <button class="btn ghost" id="exportCharsBtn">編集済みの漢字一覧を出力</button>
+        <div id="charsBanner"></div>
+        <p class="exp-note" style="margin-top:8px">編集リストで「編集済み」の文字だけを、表示順に連結したテキスト（.txt）で書き出します。FontForge等でベースを作り直すときの文字セットに使えます。</p>
       </div>
     </div>
     <div class="exp-foot">
@@ -1715,6 +1724,7 @@ class App{
     this.$("expRecommend").onclick=()=>this.applyRecommendedExport();
     this.$("expConfirm").onclick=()=>this.runExport();
     this.$("expApplyLH").onclick=()=>this.applyLineHeight();
+    this.$("expRestoreMetrics").onclick=()=>this.restoreMetrics();
     for(const id of ["expWinAsc","expWinDesc","expTypoAsc","expTypoDesc","expTypoGap","expHheaAsc","expHheaDesc","expHheaGap","expUseTypo","expSetRegular","expCp932","expCp936","expCp949","expCp950"]) this.$(id).addEventListener("input",()=>this._evalExportWarnings());
     this.$("btnFit").onclick=()=>this.editor.fit();
     this.$("toolSelect").onclick=()=>this.setTool("select");
@@ -1740,6 +1750,7 @@ class App{
     this.$("btnPaste").onclick=()=>this.paste();
     this.$("helpBtn").onclick=()=>{ this.switchHelpTab("use"); this.$("helpOverlay").classList.add("show"); };
     this.$("helpClose").onclick=()=>this.$("helpOverlay").classList.remove("show");
+    this.$("exportCharsBtn").onclick=()=>this.exportEditedChars();
     this.$("projSave").onclick=()=>this.saveProject();
     this.$("projInput").onchange=(e)=>{ if(e.target.files[0]) this.loadProject(e.target.files[0]); };
     this.$("projReuse").onclick=()=>this.$("reuseInput").click();
@@ -2207,6 +2218,12 @@ class App{
     this.$("expWinAsc").disabled=!hasOS2; this.$("expWinDesc").disabled=!hasOS2;
     this.$("expWithJson").checked=this.exportOpts?this.exportOpts.withJson:true;
     this.$("expWithTte").checked=this.exportOpts?this.exportOpts.withTte:false;
+    this.$("expWithChars").checked=this.exportOpts?!!this.exportOpts.withChars:false;
+    this._resetMetricDiff();
+    this._origMetrics={};
+    for(const [,id] of this._metricFields()) this._origMetrics[id]=this.$(id).value;
+    this._origMetrics.expUseTypo=this.$("expUseTypo").checked;
+    this.banner("gaijiBanner",null); this.banner("charsBanner",null);
     this._evalExportWarnings();
     this.$("exportOverlay").classList.add("show");
   }
@@ -2277,6 +2294,7 @@ class App{
     this.$("expTypoAsc").value=tAsc; this.$("expTypoDesc").value=-tDesc; this.$("expTypoGap").value=Math.max(0,total-upm);
     this.$("expUseTypo").checked=true;
     this._evalExportWarnings();
+    this._showMetricDiff("この行高に合わせるを適用しました");
   }
   applyRecommendedExport(){
     const info=this._expInfo; if(!info) return;
@@ -2289,6 +2307,41 @@ class App{
     }
     if(info.hasCodePage){ this.$("expCp932").checked=true; this.$("expCp936").checked=false; this.$("expCp949").checked=false; this.$("expCp950").checked=false; }
     this._evalExportWarnings();
+    this._showMetricDiff("推奨設定を適用しました");
+  }
+  _metricFields(){ return [
+    ["usWinAscent（上）","expWinAsc"],
+    ["usWinDescent（下）","expWinDesc"],
+    ["Typo Ascender（上）","expTypoAsc"],
+    ["Typo Descender（下）","expTypoDesc"],
+    ["Typo LineGap（行間）","expTypoGap"],
+    ["hhea Ascent（上）","expHheaAsc"],
+    ["hhea Descent（下）","expHheaDesc"],
+    ["hhea LineGap（行間）","expHheaGap"]
+  ]; }
+  _showMetricDiff(head){
+    if(!this._origMetrics) return;
+    const rows=[];
+    for(const [label,id] of this._metricFields()){
+      const old=this._origMetrics[id], now=this.$(id).value;
+      if(String(old)!==String(now)) rows.push(`${label}：<span class="exp-ref">変更前 ${old===""?"—":old}</span> ⇒ <b>変更後 ${now===""?"—":now}</b>`);
+    }
+    const el=this.$("expDiffReadout");
+    el.innerHTML = rows.length ? (`<b>${head}（元の値と比較）</b><br>`+rows.join("<br>")) : `${head}。数値の変更はありませんでした（元の値と同じです）。`;
+    el.style.display="";
+  }
+  _resetMetricDiff(){
+    const el=this.$("expDiffReadout");
+    el.innerHTML="数値を変更した際、ここに元の値との比較が表示されます。";
+    el.style.display="";
+  }
+  restoreMetrics(){
+    if(!this._origMetrics) return;
+    for(const [,id] of this._metricFields()) this.$(id).value=this._origMetrics[id];
+    this.$("expUseTypo").checked=!!this._origMetrics.expUseTypo;
+    this._evalExportWarnings();
+    const el=this.$("expDiffReadout");
+    el.innerHTML="元の数値に戻しました。数値を変更すると、ここに比較が表示されます。"; el.style.display="";
   }
   _gatherExportInfo(){
     const info=Object.assign({},this._expInfo);
@@ -2325,8 +2378,8 @@ class App{
   runExport(){
     const info=this._gatherExportInfo();
     this.exportInfo=info;
-    const withJson=this.$("expWithJson").checked, withTte=this.$("expWithTte").checked;
-    this.exportOpts={withJson,withTte};
+    const withJson=this.$("expWithJson").checked, withTte=this.$("expWithTte").checked, withChars=this.$("expWithChars").checked;
+    this.exportOpts={withJson,withTte,withChars};
     this.font.infoOverrides = info.hasOS2 ? {
       winAscent:info.winAscent, winDescent:info.winDescent,
       codePage1:info.hasCodePage?info.codePage1:null,
@@ -2339,6 +2392,7 @@ class App{
     const stamp=this._stamp();
     this.doExport({withJson,stamp});
     if(withTte) this.doExportGaiji({stamp});
+    if(withChars) this.exportEditedChars({stamp});
   }
   doExport(opts={}){
     if(!this.font){ this.banner("exportBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
@@ -2476,6 +2530,15 @@ class App{
   _downloadBlob(blob,name){
     const url=URL.createObjectURL(blob); const a=document.createElement("a");
     a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+  exportEditedChars(opts={}){
+    if(!this.font){ this.banner("charsBanner","warn",USER_SETTINGS.strings.needFontFirst); return; }
+    if(this.font.editedGlyphs.size===0){ this.banner("charsBanner","warn",USER_SETTINGS.strings.exportNoEdit); return; }
+    const chars=this.worklist.filter(cp=>{ const g=this.font.cmapMap.get(cp); return g!=null && this.font.editedGlyphs.has(g); }).map(cp=>String.fromCodePoint(cp));
+    const base=(this.fontName||"kyujitai").replace(/\.[^.]+$/,"");
+    const outName=base+"-chars-"+(opts.stamp||this._stamp())+".txt";
+    this._downloadBlob(new Blob([chars.join("")],{type:"text/plain;charset=utf-8"}),outName);
+    this.banner("charsBanner","ok",`${outName}（${chars.length}字）を保存しました。`);
   }
   saveProject(){
     if(!this.font){ return; }
