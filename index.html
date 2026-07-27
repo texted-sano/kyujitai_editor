@@ -202,6 +202,10 @@ i.dot.todo{background:var(--ink-faint)}
 .exp-warn.on{display:block}
 .exp-adv{font-size:12.5px;color:#f3c982;margin:8px 0 0;line-height:1.6;display:none}
 .exp-adv.on{display:block}
+.exp-details{margin-top:10px;border-top:1px solid var(--line);padding-top:6px}
+.exp-details summary{cursor:pointer;font-size:12.5px;color:var(--donor);font-weight:600;padding:6px 2px;list-style:revert;user-select:none}
+.exp-details summary:hover{color:var(--ink)}
+.exp-details[open] summary{margin-bottom:6px}
 .exp-lh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
 .exp-lh label{font-size:13px;color:var(--ink-dim)}
 .exp-lh input[type=number]{width:72px;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:6px 8px;font-family:var(--mono);font-size:13px;text-align:right}
@@ -528,22 +532,67 @@ a.link:hover{text-decoration:underline}
       <div class="help-panel" id="helpPanel-ff">
         <div class="help-sec">
           <h3 class="donor-h">このガイドの要点</h3>
-          <p>本ツールは <b>編集した glyf だけを差し替え、name / OS/2 / cmap は元のまま温存</b>します（サージカル・エクスポート）。裏を返すと <b>入力TTFの誤りもそのまま残る</b> ため、<u>編集する前に</u> FontForge で「正しいメタデータを持つベースTTF」を作っておくのが要点です。</p>
-        </div>
-
-        <div class="banner warn" style="margin:0 0 16px;padding:14px 16px;line-height:1.7">
-          <b>つまづきポイント</b>：Noto Sans JP など巨大な日中韓OTFをTTFに変換すると、FontForge が「中国語フォント」と誤判定し、OS/2 のコードページを <b>932（日本語）＝OFF ／ 950（繁体字）＝ON</b> にしてしまうことがあります。すると <b>Wordでは使えても PowerPoint で「選べるが適用されない」</b> 症状が出ます。
+          <p>本ツールは、あなたが編集した字形（glyf）だけを差し替え、名前やOS/2などの情報は元のまま引き継ぎます。</p>
+          <p>つまり <b>入力するTTFの情報が正しくないと、その誤りもそのまま残ります</b>。編集を始める前に、FontForge で「正しい情報を持つベースTTF」を作っておくのがコツです。</p>
         </div>
 
         <div class="help-sec">
-          <h3 class="donor-h">ステップ1：FontForgeでベースTTFを仕込む</h3>
-          <p><span class="step-num">1</span>大元のOTF（例：Noto Sans JP）を FontForge で開く。</p>
-          <p><span class="step-num">2</span><b>EM（unitsPerEm）を 2048 にする</b>。元OTFは通常 <b>1000</b>。TrueTypeでは <b>2048</b>（2の冪）が標準で、ヒント（グリッド合わせ）やレンダラの互換性が安定します。「エレメント → フォント情報 → 一般」で <b>「EMの大きさ」を 2048</b> に変更し、<b>アウトラインを一緒に拡大（スケール）する</b>指定で行います。重要：このとき <b>縦メトリクス（hhea / OS/2 Win / Typo / LineGap）も同じ倍率でスケール</b>されているか必ず確認してください。EMだけ変えて縦メトリクスが元（1000基準）のまま残ると、後述の<b>見切れ</b>や<b>行間の詰まり</b>の原因になります。</p>
-          <p><span class="step-num">3</span><b>先に一度 TrueType 形式へ変換する</b>。OTF（PostScript/CFF）のままだと「フォント情報」の<b>「TTF名」が選択・編集できない</b>ため、まず「ファイル → フォントを出力」で <b>TrueType(TTF)</b> を選んで書き出し、<b>その書き出したTTFを開き直します</b>。これで次のステップから「TTF名」を設定できるようになります。</p>
-          <p><span class="step-num">4</span><b>フォント名を完全に独立させる</b>。「エレメント → フォント情報」の <b>「PS Names」</b>と<b>「TTF名」</b>の両方に独自名（例 <span class="kbd">Kyujitai-Regular</span>）を設定。<b>「TTF名」のスタイル（サブファミリー）は必ず <span class="kbd">Regular</span> のみ</b>に（Bold/Light 等が残ると配布先で不具合）。なお「TTF名」の値は初期状態ではPostScript名に連動していて直接変更できないため、変更したい行の<b>「文字列」列のセルを右クリック →「PostScript名から切り離す」</b>を選んでから編集します。元フォントとの名前衝突・上書きを防ぎます。</p>
-          <p><span class="step-num">5</span><b>日本語フラグを直す</b>。「フォント情報 → OS/2 → 文字セット」で右下「コードページ」一覧を確認し、<b>「932, 日本語」だけ</b>を選択状態に。<b>「950, 繁体字中国語」など日本語以外が選ばれていたら Ctrl+クリックで解除</b>。ここが不具合の根本原因です。</p>
-          <p><span class="step-num">6</span><b>縦メトリクスは原則そのままでOK</b>。まっとうに作られたフォント（例：Noto Sans JP をglyf化したもの）は、hhea / OS/2 Win / Typo に<b>設計者が決めた適切な行の高さ</b>が既に入っています。基本は<b>触らない</b>のが正解です。<b>注意</b>：yMax/yMin は一部の特殊グリフのせいで極端に大きいことがあり、<b>「Win Ascent＝yMax」に合わせると行間が異常に広がります</b>。合わせるべきは全グリフ外周ではなく<b>実際に表示される文字の高さ</b>です。<b>実際に見切れる・行間が詰まる場合だけ</b>調整し、その際も普通の文字（漢字・かな）が収まる範囲に留めます。Wordの行高はUSE_TYPO_METRICS無効時に<b>Win値</b>で決まります。本ツールの「書き出し前の設定確認」は、この判定を<b>代表文字の実描画</b>で行い、既に十分なら何も変更しません（「推奨設定」を押しても縦メトリクスは膨らみません）。</p>
-          <p><span class="step-num">7</span>もう一度「ファイル → フォントを出力」で <b>TrueType(TTF)</b> を書き出す（例 <span class="kbd">Base_Kyujitai.ttf</span>）。中身は未編集でも、名前と言語フラグは配布用に整った状態になります。</p>
+          <h3 class="donor-h">0. まず「使えるフォント」を用意する</h3>
+          <p><b>◆ 形式</b><br>
+          TrueType（glyf）の <b>.ttf</b> が必要です。中身がCFFの <b>.otf</b>（拡張子が.ttfでも中身がCFFのもの）は使えません。→ FontForgeでglyf形式に変換します（下記ステップ）。</p>
+          <p><b>◆ 収録文字</b><br>
+          漢字だけでなく <b>ラテン・かな・約物もそろった“完全版”</b> を使ってください。<br>
+          漢字だけの版は、PowerPointに埋め込んだとき別フォントに置き換わる不具合が出ます。</p>
+          <p><b>◆ サイズ上限</b><br>
+          1つのTTFに入るのは <b>約6.5万字（65,535）まで</b>。<br>
+          pan-CJKの「Noto Sans CJK JP」は6.5万字を超えるため <b>1つのTTFにできません</b>（単一化してもTTF書き出しで失敗）。<br>
+          → おすすめは言語版の <b>「Noto Sans JP」（約1.7万字・ラテン/かな/漢字入り）</b> です。</p>
+        </div>
+
+        <div class="help-sec">
+          <h3 class="donor-h">ステップ1：FontForgeでベースTTFを作る</h3>
+
+          <p><span class="step-num">1</span><b>OTFを開く</b><br>
+          大元のフォント（例：Noto Sans JP）をFontForgeで開きます。</p>
+
+          <p><span class="step-num">2</span><b>【CIDフォントのとき】CID →「単一化」</b><br>
+          フォントが下位フォント（Alphabetic / Kana / Ideographs …）に分かれていて<b>メニューがグレーで押せない</b>場合は、上部メニューの <b>「CID → 単一化」</b> を実行します。<br>
+          これで全部が1つに統合されて <b>ラテン・かな・漢字がそろい</b>、さらに <b>グレーで押せなかった項目（TTF名など）も編集できるようになります</b>。<br>
+          <span style="color:var(--ink-faint)">※「Noto Sans CJK JP」は単一化すると6.5万字を超え、後の書き出しで「グリフが多すぎます」と失敗します。その場合は言語版「Noto Sans JP」を使ってください。</span><br>
+          <span style="color:var(--ink-faint)">※もともと1つの言語版フォントなら、この手順は不要です。</span></p>
+
+          <p><span class="step-num">3</span><b>EM（文字の基準サイズ）を 2048 にする</b><br>
+          「エレメント → フォント情報 → 一般」で <b>「EMの大きさ」を 2048</b> に変更します（元は通常1000）。<br>
+          このとき <b>「アウトラインを一緒に拡大（スケール）する」</b>を選び、字形も一緒に拡大してください。TrueTypeでは2048が標準で、表示が安定します。</p>
+
+          <p><span class="step-num">4</span><b>フォント名を独自名にする（元との衝突を防ぐ）</b><br>
+          「エレメント → フォント情報」を開き、<b>「PS Names」</b>と<b>「TTF名」</b>の両方に独自の名前（例 <span class="kbd">Kyujitai-Regular</span>）を入れます。<br>
+          ・スタイル（サブファミリー）は必ず <b>Regular だけ</b> に。<br>
+          ・「TTF名」の値は最初PostScript名に連動して変更できないので、直したい行の <b>「文字列」列を右クリック →「PostScript名から切り離す」</b> を選んでから編集します。</p>
+
+          <p><span class="step-num">5</span><b>日本語フラグを直す</b><br>
+          「フォント情報 → OS/2 → 文字セット」右下の「コードページ」で <b>「932, 日本語」だけをON</b> にします。<br>
+          「950, 繁体字中国語」など日本語以外がONなら <b>Ctrl+クリックで解除</b>します（PowerPointで「選べるが適用されない」不具合の原因）。</p>
+
+          <p><span class="step-num">6</span><b>行の高さ（縦メトリクス）は原則そのまま</b><br>
+          正しく作れたフォントには適切な行の高さが入っているので、基本は<b>触りません</b>。<br>
+          行間が実際におかしいときだけ調整します（本ツールの「書き出し前の設定確認」の折りたたみ内で微調整できます）。</p>
+
+          <p><span class="step-num">7</span><b>TrueTypeで書き出す</b><br>
+          「ファイル → フォントを出力 → TrueType(TTF)」で書き出します（例 <span class="kbd">Base_Kyujitai.ttf</span>）。<br>
+          検証ダイアログ（Self Intersecting 等）が出たら <b>「生成」</b> で進めてOK。CFF（3次曲線）はここでTrueType（2次曲線）へ自動変換されます。</p>
+        </div>
+
+        <div class="banner warn" style="margin:0 0 16px;padding:14px 16px;line-height:1.8">
+          <b>【重要】ライセンスで触ってはいけない所・守ること</b><br>
+          改変したフォントを配布・納品するときは、元フォントのライセンスに従う必要があります。<br><br>
+          <b>■ Noto Sans JP（SIL OFL 1.1）を使う場合</b><br>
+          ・<b>著作権・ライセンス表示は消さない</b>：フォント情報「TTF名」内の <b>Copyright（著作権）／License（ライセンス本文）／License URL</b> はそのまま残します（削除・改変は規約違反）。<br>
+          ・<b>フォント名は必ず変える</b>（手順4）。「Noto」等の名前をそのまま使わない。<br>
+          ・改変版も <b>同じOFLで配布</b> し、<b>フォント単体を有償で売らない</b>（他の成果物に同梱するのは可）。<br><br>
+          <b>■ 他のフォントに変える場合</b><br>
+          ・游明朝／游ゴシック（Windows同梱）や市販フォントの多くは <b>改変・再配布が禁止</b> です。<br>
+          ・使う前に必ず、そのフォントが <b>「改変」と「再配布（埋め込み配布）」を許可</b> しているか確認してください。<b>ここは技術ではなく権利の問題で、最優先</b>です。
         </div>
 
         <div class="help-sec">
@@ -559,12 +608,13 @@ a.link:hover{text-decoration:underline}
         <div class="help-sec">
           <h3 class="donor-h">配布前チェックリスト</h3>
           <div class="checklist">
+            <span>ベースは TrueType(glyf)・ラテン/かな/漢字入りの完全版か（漢字だけの版・CFFの.otfは不可）</span>
             <span>独自フォント名を PS Names / TTF名 の両方に設定したか</span>
-            <span>EM（unitsPerEm）を 2048 にし、縦メトリクスも一緒にスケールしたか</span>
+            <span>EM（unitsPerEm）を 2048 にし、アウトラインも一緒にスケールしたか</span>
             <span>TTF名のスタイル（サブファミリー）が <span class="kbd">Regular</span> のみか</span>
             <span>OS/2 文字セットで「932, 日本語」のみ選択か（950等が混在していないか）</span>
-            <span>OS/2 の Win Ascent ≧ yMax、Win Descent ≧ |yMin| か（Word/PowerPointで上下が見切れない）</span>
             <span>編集は元OTFでなく「ベースTTF」を使ったか</span>
+            <span>ライセンス：著作権・ライセンス表示を残したか／名前を変えたか／改変・再配布が許可された元フォントか</span>
             <span>書き出したTTFを Word・PowerPoint 両方で実機テストしたか</span>
           </div>
         </div>
@@ -619,41 +669,46 @@ a.link:hover{text-decoration:underline}
         <div class="exp-row"><label>制作者ID（achVendID）</label><span class="val" id="expVendor">—</span></div>
       </div>
       <div class="exp-sec">
-        <h3>行の高さ・見切れ（縦メトリクス · 編集可）</h3>
-        <p class="exp-note" style="margin-top:0">フォントには「1行の高さ」を決める数値が<b>3組</b>あり、アプリごとに使う組が違います：<b>Word/Windows＝Win</b>、<b>新しいアプリ＝Typo</b>（下のスイッチON時）、<b>Mac＝hhea</b>。数値が小さいと<b>行が詰まり</b>、グリフより小さいと<b>文字が見切れ</b>ます。</p>
-
-        <div class="exp-lh">
-          <label>行の高さをそろえる：</label>
-          <input type="number" id="expEmTarget" step="0.05" value="1.2"><span class="exp-ref">em</span>
-          <button class="btn donor" id="expApplyLH" style="width:auto;padding:6px 12px">この行高に合わせる</button>
-        </div>
-        <p class="exp-note">文字サイズの何倍を1行の高さにするか。<b>1.0＝文字ぴったり</b>／<b>1.2＝標準的な余裕</b>（Noto系の目安）。押すと下の3組を自動計算します（見切れも起きない値に調整）。</p>
-
-        <div class="exp-mgrp">
-          <div class="exp-mtitle">① Windows・Word 用（Win）<span class="exp-ref">— Wordの行高と描画範囲</span></div>
-          <div class="exp-row"><label>上（usWinAscent）</label><input type="number" id="expWinAsc"></div>
-          <div class="exp-row"><label>下（usWinDescent）</label><input type="number" id="expWinDesc"></div>
-        </div>
-
-        <div class="exp-mgrp">
-          <div class="exp-mtitle">② 新しいアプリ用（Typo）</div>
-          <label class="exp-opt"><input type="checkbox" id="expUseTypo">新しいアプリでこのTypo値を優先する（USE_TYPO_METRICS）</label>
-          <div class="exp-row"><label>上（Ascender）</label><input type="number" id="expTypoAsc"></div>
-          <div class="exp-row"><label>下（Descender・マイナス）</label><input type="number" id="expTypoDesc"></div>
-          <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expTypoGap"></div>
-        </div>
-
-        <div class="exp-mgrp">
-          <div class="exp-mtitle">③ Mac 用（hhea）</div>
-          <div class="exp-row"><label>上（Ascent）</label><input type="number" id="expHheaAsc"></div>
-          <div class="exp-row"><label>下（Descent・マイナス）</label><input type="number" id="expHheaDesc"></div>
-          <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expHheaGap"></div>
-        </div>
-
+        <h3>行の高さ・見切れ（縦メトリクス）</h3>
+        <p class="exp-note" style="margin-top:0"><b>通常は触らなくてOK</b>です。正しく作られたフォントには、適切な行の高さが最初から入っています。下の目安と警告だけ確認してください。</p>
         <p class="exp-readout" id="expLineReadout">—</p>
-        <p class="exp-note">参考：代表的な文字の実描画 上端=<span class="exp-ref" id="expInkTop">—</span> ／ 下端=<span class="exp-ref" id="expInkBot">—</span>（見切れ判定はこの実描画を基準にします）。全グリフの外周 yMax=<span class="exp-ref" id="expYMax">—</span>／yMin=<span class="exp-ref" id="expYMin">—</span>（unitsPerEm=<span class="exp-ref" id="expUpm">—</span>）。<b>通常フォントはこの欄を触らず既定のまま</b>で構いません（元の設計値が入っています）。</p>
-        <p class="exp-warn" id="expAscWarn">Win上/下が<b>実際に表示される文字</b>より小さいと、Word/PowerPointで<b>上下が見切れ</b>ます。上表の「実描画」以上にしてください（全グリフ外周のyMaxではなく実描画が基準です）。</p>
+        <p class="exp-warn" id="expAscWarn">Win上/下が<b>実際に表示される文字</b>より小さいと、Word/PowerPointで<b>上下が見切れ</b>ます。下の詳細を開いて「実描画」以上にしてください。</p>
         <p class="exp-adv" id="expEmWarn">EM（unitsPerEm）が <b>2048</b> ではありません（現在 <span class="exp-ref" id="expEmVal">—</span>）。TrueType配布では 2048 が標準です。FontForgeの <b>Element → Font Info → General → Em Size</b> を 2048 にし、<b>全アウトライン・全メトリクスを一緒にスケール</b>して作り直すのを推奨します（本ツールではEMは変更できません）。</p>
+
+        <details class="exp-details">
+          <summary>行間・縦メトリクスを手動で調整する（通常は不要）</summary>
+          <p class="exp-note">フォントには「1行の高さ」を決める数値が<b>3組</b>あり、アプリごとに使う組が違います：<b>Word/Windows＝Win</b>、<b>新しいアプリ＝Typo</b>（下のスイッチON時）、<b>Mac＝hhea</b>。数値が小さいと<b>行が詰まり</b>、グリフより小さいと<b>文字が見切れ</b>ます。<b>行間が明らかに変なときだけ</b>触ってください。</p>
+
+          <div class="exp-lh">
+            <label>行の高さをそろえる：</label>
+            <input type="number" id="expEmTarget" step="0.05" value="1.2"><span class="exp-ref">em</span>
+            <button class="btn donor" id="expApplyLH" style="width:auto;padding:6px 12px">この行高に合わせる</button>
+          </div>
+          <p class="exp-note"><b>正しく作ったフォントでは押さないでください</b>（元の設計値を上書きし、行間がずれます）。1.0＝文字ぴったり／1.2＝標準的な余裕。押すと下の3組を自動計算します。</p>
+
+          <div class="exp-mgrp">
+            <div class="exp-mtitle">① Windows・Word 用（Win）<span class="exp-ref">— Wordの行高と描画範囲</span></div>
+            <div class="exp-row"><label>上（usWinAscent）</label><input type="number" id="expWinAsc"></div>
+            <div class="exp-row"><label>下（usWinDescent）</label><input type="number" id="expWinDesc"></div>
+          </div>
+
+          <div class="exp-mgrp">
+            <div class="exp-mtitle">② 新しいアプリ用（Typo）</div>
+            <label class="exp-opt"><input type="checkbox" id="expUseTypo">新しいアプリでこのTypo値を優先する（USE_TYPO_METRICS）</label>
+            <div class="exp-row"><label>上（Ascender）</label><input type="number" id="expTypoAsc"></div>
+            <div class="exp-row"><label>下（Descender・マイナス）</label><input type="number" id="expTypoDesc"></div>
+            <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expTypoGap"></div>
+          </div>
+
+          <div class="exp-mgrp">
+            <div class="exp-mtitle">③ Mac 用（hhea）</div>
+            <div class="exp-row"><label>上（Ascent）</label><input type="number" id="expHheaAsc"></div>
+            <div class="exp-row"><label>下（Descent・マイナス）</label><input type="number" id="expHheaDesc"></div>
+            <div class="exp-row"><label>行間（LineGap）</label><input type="number" id="expHheaGap"></div>
+          </div>
+
+          <p class="exp-note">参考：代表的な文字の実描画 上端=<span class="exp-ref" id="expInkTop">—</span> ／ 下端=<span class="exp-ref" id="expInkBot">—</span>（見切れ判定はこの実描画が基準）。全グリフの外周 yMax=<span class="exp-ref" id="expYMax">—</span>／yMin=<span class="exp-ref" id="expYMin">—</span>（unitsPerEm=<span class="exp-ref" id="expUpm">—</span>）。</p>
+        </details>
       </div>
       <div class="exp-sec">
         <h3>コードページ（OS/2 · 編集可）</h3>
