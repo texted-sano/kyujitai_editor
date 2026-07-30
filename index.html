@@ -273,6 +273,11 @@ a.link:hover{text-decoration:underline}
 .tbtn:disabled{opacity:.38;cursor:not-allowed;border-color:var(--line);color:var(--ink-faint)}
 .tbtn.icon-only{padding:0;width:34px;justify-content:center}
 @media (max-width:760px){ .tbtn .tx{display:none} .tbtn{padding:0;width:34px;justify-content:center} }
+#tipChip{position:fixed;z-index:99999;pointer-events:none;display:none;max-width:270px;
+  padding:7px 10px;border:1px solid var(--edit);background:var(--panel-2);color:var(--ink);
+  border-radius:7px;font-size:12px;line-height:1.55;box-shadow:0 6px 22px rgba(0,0,0,.45)}
+#tipChip b{color:var(--ink)}
+#tipChip .k{font-family:var(--mono);color:var(--edit);font-size:11px;padding:0 2px}
 </style>
 </head>
 <body>
@@ -310,6 +315,7 @@ a.link:hover{text-decoration:underline}
         <button class="tbtn" id="toolAddCorner" title="角点を追加 (A)"><span class="ic">◇</span><span class="tx">角点</span></button>
         <button class="tbtn" id="toolAddCurve" title="曲線点を追加 (S)"><span class="ic">～</span><span class="tx">曲線点</span></button>
         <button class="tbtn" id="toolScissors" title="はさみ・輪郭上の2点で分割 (K)"><span class="ic">✂</span><span class="tx">はさみ</span></button>
+        <button class="tbtn" id="toolFreehand" title="フリーハンドで図形を描く (P)"><span class="ic">✎</span><span class="tx">フリーハンド</span></button>
         <button class="tbtn" id="toolPan" title="画面移動 (Space)"><span class="ic">✋</span><span class="tx">移動</span></button>
       </div>
     </div>
@@ -321,6 +327,7 @@ a.link:hover{text-decoration:underline}
         <button class="tbtn" id="btnDup" title="選択を複製"><span class="ic">⧉</span><span class="tx">複製</span></button>
         <button class="tbtn" id="btnFlipH" title="左右反転"><span class="ic">⇄</span><span class="tx">左右反転</span></button>
         <button class="tbtn" id="btnFlipV" title="上下反転"><span class="ic">⇅</span><span class="tx">上下反転</span></button>
+        <button class="tbtn" id="btnUnion" title="選択した複数図形をアウトライン統合"><span class="ic">⧉</span><span class="tx">合体</span></button>
       </div>
     </div>
     <div class="tgroup">
@@ -474,6 +481,7 @@ a.link:hover{text-decoration:underline}
             <span><span class="kbd">空きをドラッグ</span> 範囲選択</span>
             <span><span class="kbd">Shift+クリック</span> 追加選択</span>
             <span><span class="kbd">辺をドラッグ</span> 両端の点ごと移動</span>
+            <span><span class="kbd">ドラッグ中に Shift</span> 水平/垂直/45°に拘束</span>
             <span><span class="kbd">Ctrl+A</span> 全点選択</span>
             <span><span class="kbd">← ↑ → ↓</span> 選択点を移動（Shiftで10）</span>
             <span><span class="kbd">Delete</span> 選択点を削除</span>
@@ -481,18 +489,22 @@ a.link:hover{text-decoration:underline}
             <span><span class="kbd">Ctrl+C / Ctrl+V</span> 点をコピー／貼付（切り抜き）</span>
             <span><span class="kbd">Ctrl+Z / Ctrl+Shift+Z</span> 戻す／やり直し</span>
           </div>
+          <p style="margin-top:8px">点を選ぶと画面下の情報バーに座標が出ます。1点なら <b>X / Y</b>、複数点なら選択範囲の <b>左・右・上・下</b> と <b>幅×高</b> を表示。同じ高さ・同じ幅にそろえる、左右対称パーツを数値で確認する、といった位置合わせの目安になります（ドラッグ中もリアルタイムに更新）。</p>
         </div>
 
         <div class="help-sec">
           <h3>道具（ショートカット）</h3>
-          <p><span class="kbd">V</span>選択　<span class="kbd">T</span>自由変形　<span class="kbd">R</span>回転　<span class="kbd">A</span>角点追加　<span class="kbd">S</span>曲線点追加　<span class="kbd">K</span>はさみ　<span class="kbd">Space</span>画面移動　<span class="kbd">[ ]</span>回転(Shiftで15°)　<span class="kbd">F</span>全体表示</p>
+          <p><span class="kbd">V</span>選択　<span class="kbd">T</span>自由変形　<span class="kbd">R</span>回転　<span class="kbd">A</span>角点追加　<span class="kbd">S</span>曲線点追加　<span class="kbd">K</span>はさみ　<span class="kbd">P</span>フリーハンド　<span class="kbd">Space</span>画面移動　<span class="kbd">[ ]</span>回転(1°・Shiftで15°)　<span class="kbd">F</span>全体表示</p>
+          <p style="margin-top:6px">「合体」ボタンは選択した複数図形をアウトライン統合します（下記）。</p>
         </div>
 
         <div class="help-sec">
           <h3>はさみ・自由変形・切り抜き</h3>
-          <p><b>はさみ（K）</b>：輪郭上の2点をクリックすると、その2点で1つの閉じた輪郭を2つに分割します（長い四角→2つの四角、対角の2点→2つの三角）。角にスナップし、辺の途中でも切れます。同じ辺だけ・同じ点は分割できません。</p>
+          <p><b>はさみ（K）</b>：輪郭上の2点をクリックすると、その2点で1つの閉じた輪郭を2つに分割します（長い四角→2つの四角、対角の2点→2つの三角）。角にスナップし、辺の途中でも切れます。同じ辺だけ・同じ点は分割できません。<b>1点目を決めた後に Shift</b> を押すと、マウスの向きに応じて水平/垂直に切断線が拘束され、輪郭との交点へ吸着します（黄色い目印が出ます）。平行・垂直にきれいに切りたいときに使います。</p>
           <p><b>自由変形（T）</b>：選択（なければ全体）に枠が出ます。角ハンドルで縦横同時、辺ハンドルで片方向、Shiftで等比拡大縮小。※太さも一緒に拡縮されます（線幅一定の変形はしません）。</p>
           <p><b>切り抜き</b>（例：車の中の田だけ欲しい）：範囲選択で田を構成する点を選び <span class="kbd">Ctrl+C</span>。対象の文字を開いて <span class="kbd">Ctrl+V</span>。選んだ点が輪郭として閉じ、切り出した形が貼り付きます。</p>
+          <p><b>フリーハンド（P）</b>：キャンバス上をドラッグして輪郭をなぞり、指を離すと自動で閉じた図形になります。手ブレは自動で間引かれ、少ない角点のきれいな輪郭になります。細かな調整は選択ツールで点を動かして仕上げてください。</p>
+          <p><b>合体（アウトライン統合）</b>：重ねた図形を2つ以上まるごと選択して「合体」ボタンを押すと、外形だけを1つのアウトラインに統合します（Illustratorのパスファインダー「合流」に相当）。まるごと選択は、範囲選択で囲むか、各図形の内側を <span class="kbd">Shift+クリック</span> で追加します。巻き方向が逆でも正しく統合され、囲まれた空白は穴として保持されます。<b>重なりで塗りが消える</b>のは輪郭の巻き方向が逆で打ち消し合うためで、合体すると正しい向きの単一輪郭になり解消します。曲線は、重なりで切断されない辺は<b>元の曲線点のまま保持</b>されます。図形が交差する接合部の辺だけは直線化されます（交点は新しい点のため）。滑らかさが必要な接合部は、統合後にその数点を <span class="kbd">C</span> で曲線化してください。</p>
         </div>
 
         <div class="help-sec">
@@ -1250,6 +1262,97 @@ class GlyphRender{
 /* =========================================================================
    EDITOR (center stage)
 ========================================================================= */
+/* =========================================================================
+   GEOMETRY: FLATTEN / SIMPLIFY / UNION
+========================================================================= */
+function contourNodes(pts){
+  const n=pts.length; if(n<2) return {anchors:[],edges:[]};
+  const seq=[];
+  for(let i=0;i<n;i++){ const cur=pts[i], nxt=pts[(i+1)%n]; seq.push({x:cur.x,y:cur.y,on:cur.on!==false});
+    if(cur.on===false && nxt.on===false) seq.push({x:(cur.x+nxt.x)/2,y:(cur.y+nxt.y)/2,on:true}); }
+  let start=seq.findIndex(p=>p.on); if(start<0){ seq.unshift({x:seq[0].x,y:seq[0].y,on:true}); start=0; }
+  const rot=seq.slice(start).concat(seq.slice(0,start)); const m=rot.length;
+  const onIdx=[]; for(let k=0;k<m;k++) if(rot[k].on) onIdx.push(k);
+  if(onIdx.length<2) return {anchors:[],edges:[]};
+  const anchors=onIdx.map(k=>({x:rot[k].x,y:rot[k].y})); const edges=[];
+  for(let a=0;a<onIdx.length;a++){ const ka=onIdx[a]; const mid=(ka+1)%m; const kb=onIdx[(a+1)%onIdx.length];
+    let ctrl=null; if(mid!==kb && !rot[mid].on) ctrl={x:rot[mid].x,y:rot[mid].y};
+    edges.push({ai:a,bi:(a+1)%onIdx.length,ctrl}); }
+  return {anchors,edges};
+}
+function flattenEdge(A,B,ctrl,steps){
+  const out=[{x:A.x,y:A.y}]; if(!ctrl){ out.push({x:B.x,y:B.y}); return out; }
+  for(let s=1;s<=steps;s++){ const t=s/steps, mt=1-t; out.push({x:mt*mt*A.x+2*mt*t*ctrl.x+t*t*B.x, y:mt*mt*A.y+2*mt*t*ctrl.y+t*t*B.y}); }
+  return out;
+}
+function simplifyClosed(pts,tol){
+  if(pts.length<=3) return pts.slice();
+  const segDist=(p,a,b)=>{ const vx=b.x-a.x, vy=b.y-a.y; const l2=vx*vx+vy*vy||1e-9;
+    let t=((p.x-a.x)*vx+(p.y-a.y)*vy)/l2; t=Math.max(0,Math.min(1,t)); const qx=a.x+vx*t, qy=a.y+vy*t; return Math.hypot(p.x-qx,p.y-qy); };
+  const dp=(a,b,arr)=>{ let dmax=0,idx=-1; const A=arr[a],B=arr[b];
+    for(let i=a+1;i<b;i++){ const d=segDist(arr[i],A,B); if(d>dmax){ dmax=d; idx=i; } }
+    if(dmax>tol && idx>0) return dp(a,idx,arr).concat(dp(idx,b,arr).slice(1));
+    return [A,B]; };
+  return dp(0,pts.length-1,pts.slice());
+}
+function polyUnionRich(contours, steps){
+  const G=[]; const polys=[];
+  for(const pts of contours){ const {anchors,edges}=contourNodes(pts); if(!edges.length) continue; const poly=[];
+    for(const e of edges){ const A=anchors[e.ai], B=anchors[e.bi]; const samples=flattenEdge(A,B,e.ctrl,steps);
+      G.push({A,B,ctrl:e.ctrl,samples,K:samples.length-1}); for(let i=0;i<samples.length-1;i++) poly.push(samples[i]); }
+    polys.push(poly); }
+  if(!G.length) return [];
+  let minx=Infinity,miny=Infinity,maxx=-Infinity,maxy=-Infinity;
+  for(const p of polys) for(const v of p){ if(v.x<minx)minx=v.x; if(v.x>maxx)maxx=v.x; if(v.y<miny)miny=v.y; if(v.y>maxy)maxy=v.y; }
+  const diag=Math.hypot(maxx-minx,maxy-miny)||1; const EPS=diag*1e-7, OFF=diag*1e-4;
+  const edges=[];
+  for(let gid=0; gid<G.length; gid++){ const s=G[gid].samples;
+    for(let i=0;i<s.length-1;i++){ const a=s[i],b=s[i+1]; if(Math.hypot(b.x-a.x,b.y-a.y)>EPS) edges.push({ax:a.x,ay:a.y,bx:b.x,by:b.y,gid,K:G[gid].K}); } }
+  const segInt=(e,f)=>{ const r={x:e.bx-e.ax,y:e.by-e.ay}, ss={x:f.bx-f.ax,y:f.by-f.ay};
+    const den=r.x*ss.y-r.y*ss.x; const out=[]; const qp={x:f.ax-e.ax,y:f.ay-e.ay};
+    if(Math.abs(den)>1e-12){ const t=(qp.x*ss.y-qp.y*ss.x)/den, u=(qp.x*r.y-qp.y*r.x)/den; if(t>-1e-9&&t<1+1e-9&&u>-1e-9&&u<1+1e-9) out.push(t); }
+    for(const pt of [{x:f.ax,y:f.ay},{x:f.bx,y:f.by}]){ const rl2=r.x*r.x+r.y*r.y||1e-12; let t=((pt.x-e.ax)*r.x+(pt.y-e.ay)*r.y)/rl2;
+      if(t>1e-9&&t<1-1e-9){ const px=e.ax+r.x*t, py=e.ay+r.y*t; if(Math.hypot(px-pt.x,py-pt.y)<EPS) out.push(t); } } return out; };
+  const subs=[];
+  for(let i=0;i<edges.length;i++){ const e=edges[i]; const ts=[0,1];
+    for(let j=0;j<edges.length;j++){ if(i===j) continue; for(const t of segInt(e,edges[j])) ts.push(t); }
+    ts.sort((a,b)=>a-b); const cut=ts.some(t=>t>1e-6 && t<1-1e-6);
+    for(let k=0;k+1<ts.length;k++){ const t0=ts[k], t1=ts[k+1]; if(t1-t0<1e-9) continue;
+      subs.push({ax:e.ax+(e.bx-e.ax)*t0, ay:e.ay+(e.by-e.ay)*t0, bx:e.ax+(e.bx-e.ax)*t1, by:e.ay+(e.by-e.ay)*t1, gid:e.gid, K:e.K, whole:(t0===0&&t1===1&&!cut)}); } }
+  const insideAny=(x,y)=>{ for(const p of polys){ let c=false; const n=p.length; for(let i=0,j=n-1;i<n;j=i++){ const a=p[i], b=p[j];
+        if(((a.y>y)!==(b.y>y)) && (x<(b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-12)+a.x)) c=!c; } if(c) return true; } return false; };
+  const kept=[];
+  for(const sg of subs){ const mx=(sg.ax+sg.bx)/2, my=(sg.ay+sg.by)/2;
+    let nx=-(sg.by-sg.ay), ny=(sg.bx-sg.ax); const L=Math.hypot(nx,ny)||1; nx/=L; ny/=L;
+    const inL=insideAny(mx+nx*OFF,my+ny*OFF), inR=insideAny(mx-nx*OFF,my-ny*OFF);
+    if(inL===inR) continue;
+    if(inL) kept.push({...sg}); else kept.push({ax:sg.bx,ay:sg.by,bx:sg.ax,by:sg.ay,gid:sg.gid,K:sg.K,whole:sg.whole,rev:true}); }
+  const key=(x,y)=>Math.round(x/EPS)+","+Math.round(y/EPS);
+  const outMap=new Map(); for(const e of kept){ const k=key(e.ax,e.ay); if(!outMap.has(k)) outMap.set(k,[]); outMap.get(k).push(e); }
+  const used=new Set(); const ang=e=>Math.atan2(e.by-e.ay,e.bx-e.ax); const rawLoops=[];
+  for(const e0 of kept){ if(used.has(e0)) continue; const loop=[]; let cur=e0, guard=0;
+    while(cur && !used.has(cur) && guard++<200000){ used.add(cur); loop.push(cur);
+      const k=key(cur.bx,cur.by); const cand=(outMap.get(k)||[]).filter(e=>!used.has(e)); if(!cand.length) break;
+      const inA=ang({ax:cur.bx,ay:cur.by,bx:cur.ax,by:cur.ay}); let best=null,bt=-Infinity;
+      for(const c of cand){ let d=ang(c)-inA; while(d<=-Math.PI)d+=2*Math.PI; while(d>Math.PI)d-=2*Math.PI; if(d>bt){ bt=d; best=c; } }
+      cur=best; if(cur===e0) break; }
+    if(loop.length>=3) rawLoops.push(loop); }
+  const loops=[];
+  for(let loop of rawLoops){
+    let b=-1; for(let k=0;k<loop.length;k++){ if(loop[k].gid!==loop[(k-1+loop.length)%loop.length].gid){ b=k; break; } }
+    if(b>0) loop=loop.slice(b).concat(loop.slice(0,b));
+    const nodes=[]; let i=0; const n=loop.length;
+    while(i<n){ const gid=loop[i].gid; let j=i; while(j<n && loop[j].gid===gid) j++;
+      const run=loop.slice(i,j); const g=G[gid];
+      const intact = run.length===g.K && run.every(x=>x.whole); const rev=run[0].rev;
+      if(intact && g.ctrl){ const A0=rev?g.B:g.A; nodes.push({x:A0.x,y:A0.y,on:true}); nodes.push({x:g.ctrl.x,y:g.ctrl.y,on:false}); }
+      else if(intact){ const A0=rev?g.B:g.A; nodes.push({x:A0.x,y:A0.y,on:true}); }
+      else { for(let r=0;r<run.length;r++) nodes.push({x:run[r].ax,y:run[r].ay,on:true}); }
+      i=j; }
+    if(nodes.length>=3) loops.push(nodes); }
+  return loops;
+}
+
 class Editor{
   constructor(canvas, hud, app){
     this.canvas=canvas; this.ctx=canvas.getContext("2d"); this.hud=hud; this.app=app;
@@ -1291,6 +1394,12 @@ class Editor{
   selectAllPoints(){ this.selPoints.clear(); this.contours.forEach((c,ci)=>c.forEach((_,pi)=>this.selPoints.add(this._key(ci,pi)))); this.draw(); this.app.syncPanels(); }
   selectContourIndices(list){ this.selPoints.clear(); for(const ci of list){ const c=this.contours[ci]; if(!c) continue; c.forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))); } this.draw(); this.app.syncPanels(); }
   _selRefs(){ const out=[]; for(const k of this.selPoints){ const [ci,pi]=k.split(":").map(Number); if(this.contours[ci]&&this.contours[ci][pi]) out.push({ci,pi,p:this.contours[ci][pi]}); } return out; }
+  _selBBox(){
+    const refs=this._selRefs(); if(!refs.length) return null;
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const r of refs){ const p=r.p; if(p.x<x0)x0=p.x; if(p.x>x1)x1=p.x; if(p.y<y0)y0=p.y; if(p.y>y1)y1=p.y; }
+    return {x0,y0,x1,y1,w:x1-x0,h:y1-y0,n:refs.length};
+  }
   _workingRefs(){ const s=this._selRefs(); if(s.length) return s; const all=[]; this.contours.forEach((c,ci)=>c.forEach((p,pi)=>all.push({ci,pi,p}))); return all; }
   hasSelection(){ return this.selPoints.size>0; }
 
@@ -1322,6 +1431,7 @@ class Editor{
     if(this.tool==="transform") this._drawTransformBox();
     if(this.tool==="scissors") this._drawScissorsGuide();
     if(this.mode==="marquee"&&this.marquee) this._drawMarquee();
+    if(this.mode==="freehand") this._drawFreehand();
     this._hud();
   }
   _drawGrid(w,h){
@@ -1408,14 +1518,19 @@ class Editor{
     if(!this.app.font){ this.hud.innerHTML="フォントを読み込んでください"; return; }
     if(!this.upm){ this.hud.innerHTML="文字を開いてください"; return; }
     const ch=this.app.targetChar||"";
-    const toolName={select:"選択",transform:"自由変形",addcorner:"角点を追加",addcurve:"曲線点を追加",rotate:"回転",pan:"画面移動",scissors:"はさみ"}[this.tool]||this.tool;
+    const toolName={select:"選択",transform:"自由変形",addcorner:"角点を追加",addcurve:"曲線点を追加",rotate:"回転",pan:"画面移動",scissors:"はさみ",freehand:"フリーハンド"}[this.tool]||this.tool;
     let l2;
     if(this.tool==="transform") l2="ハンドルをドラッグで拡大縮小（角＝両方向・辺＝片方向、Shiftで等比）";
     else if(this.tool==="addcorner") l2="線上をクリックで角点を追加";
     else if(this.tool==="addcurve") l2="線上をクリックで曲線点を追加";
-    else if(this.tool==="scissors") l2=this._cutA?"2点目をクリックで切断（同じ輪郭上）":"輪郭上の1点目をクリック（角/辺）。2点で分割";
-    else if(this.tool==="rotate") l2="ドラッグで回転／ [ ] で1°・Shiftで15°";
-    else if(this.selPoints.size) l2=`点を ${this.selPoints.size} 個選択中／辺ドラッグ・複数移動・C で曲線化・Del で削除`;
+    else if(this.tool==="scissors") l2=this._cutA?"2点目をクリックで切断（Shiftで水平/垂直に吸着）":"輪郭上の1点目をクリック（角/辺）。2点で分割";
+    else if(this.tool==="freehand") l2="ドラッグで輪郭を描く（離すと閉じた図形になります）";
+    else if(this.tool==="rotate") l2="ドラッグで回転（Shift+ドラッグで45°ずつ）／ [ ] で1°・Shift+[ ]で15°";
+    else if(this.selPoints.size){
+      const bb=this._selBBox(), rd=v=>Math.round(v);
+      if(bb.n===1) l2=`点1個選択　<b>X ${rd(bb.x0)}</b> <b>Y ${rd(bb.y0)}</b>　／ ドラッグ移動（Shiftで水平/垂直/45°）・C・Del`;
+      else l2=`点 ${bb.n}個選択　左<b>${rd(bb.x0)}</b> 右<b>${rd(bb.x1)}</b> 上<b>${rd(bb.y1)}</b> 下<b>${rd(bb.y0)}</b>　幅<b>${rd(bb.w)}</b>×高<b>${rd(bb.h)}</b>`;
+    }
     else l2="点/辺/内側をクリック、または空きをドラッグで範囲選択";
     this.hud.innerHTML=`対象 <b>${ch||"—"}</b> ／ 輪郭 ${this.contours.length} ／ 道具 <b>${toolName}</b><br>${l2}`;
   }
@@ -1436,7 +1551,8 @@ class Editor{
     if(this.tool==="pan"||this.app.spaceDown){ this.mode="pan"; this.panStart=[this.tx,this.ty]; return; }
     if(this.tool==="addcorner"){ this._insertPoint(px,py,true); this.mode="none"; return; }
     if(this.tool==="addcurve"){ this._insertPoint(px,py,false); this.mode="none"; return; }
-    if(this.tool==="scissors"){ this._scissorsClick(px,py); this.mode="none"; return; }
+    if(this.tool==="scissors"){ this._scissorsClick(px,py,e.shiftKey); this.mode="none"; return; }
+    if(this.tool==="freehand"){ this._fhStart(px,py); return; }
     if(this.tool==="transform"){
       const h=this._hitHandle(px,py);
       if(h!==-1){ this._beginTransform(h); return; }
@@ -1483,16 +1599,25 @@ class Editor{
     this.app.historyBegin(); this.mode="transform";
   }
   onMove(e){
-    if(this.tool==="scissors" && this._cutA && (this.mode==="none"||this.mode===undefined)){ this._cutCursor=this._localXY(e); this.draw(); return; }
+    if(this.tool==="scissors" && this._cutA && (this.mode==="none"||this.mode===undefined)){
+      const [mx,my]=this._localXY(e);
+      if(e.shiftKey){ const snap=this._constrainedCut(mx,my); if(snap){ this._cutSnap=snap; this._cutCursor=this.toScreen(snap.x,snap.y); } else { this._cutSnap=null; this._cutCursor=[mx,my]; } }
+      else { this._cutSnap=null; this._cutCursor=[mx,my]; }
+      this.draw(); return;
+    }
+    if(this.mode==="freehand"){ const [fpx,fpy]=this._localXY(e); this._fhMove(fpx,fpy); return; }
     if(this.mode==="none"||this.mode===undefined) return;
     const [px,py]=this._localXY(e); const dx=px-this.dragStart[0], dy=py-this.dragStart[1];
     if(Math.abs(dx)+Math.abs(dy)>2) this.dragMoved=true;
     if(this.mode==="pan"){ this.tx=this.panStart[0]+dx; this.ty=this.panStart[1]+dy; this.draw(); return; }
     const fdx=dx/this.scale, fdy=-dy/this.scale;
     if(this.mode==="move"){
-      for(const s of this._snap){ const p=this.contours[s.ci][s.pi]; p.x=s.x+fdx; p.y=s.y+fdy; } this.draw();
+      let mvx=fdx, mvy=fdy;
+      if(e.shiftKey){ const ang=Math.round(Math.atan2(dy,dx)/(Math.PI/4))*(Math.PI/4); const len=Math.hypot(dx,dy); mvx=Math.cos(ang)*len/this.scale; mvy=-Math.sin(ang)*len/this.scale; }
+      for(const s of this._snap){ const p=this.contours[s.ci][s.pi]; p.x=s.x+mvx; p.y=s.y+mvy; } this.draw();
     } else if(this.mode==="rotate"){
-      const [fx,fy]=this.toFont(px,py); const d=Math.atan2(fy-this._center[1],fx-this._center[0])-this._startAng;
+      const [fx,fy]=this.toFont(px,py); let d=Math.atan2(fy-this._center[1],fx-this._center[0])-this._startAng;
+      if(e.shiftKey){ const q=Math.PI/4; d=Math.round(d/q)*q; }
       const cs=Math.cos(d), sn=Math.sin(d); const [cx,cy]=this._center;
       for(const s of this._snap){ const p=this.contours[s.ci][s.pi]; const ox=s.x-cx, oy=s.y-cy; p.x=cx+ox*cs-oy*sn; p.y=cy+ox*sn+oy*cs; } this.draw();
     } else if(this.mode==="transform"){
@@ -1506,6 +1631,7 @@ class Editor{
     }
   }
   onUp(e){
+    if(this.mode==="freehand"){ this._fhEnd(); if(this.canvas.hasPointerCapture&&this.canvas.hasPointerCapture(e.pointerId)) this.canvas.releasePointerCapture(e.pointerId); return; }
     if((this.mode==="move"||this.mode==="rotate"||this.mode==="transform") && this.dragMoved){ this._commitDrag(this.mode); }
     this.mode="none"; this._snap=null; this._tf=null; this.marquee=null;
     if(this.canvas.hasPointerCapture&&this.canvas.hasPointerCapture(e.pointerId)) this.canvas.releasePointerCapture(e.pointerId);
@@ -1573,10 +1699,26 @@ class Editor{
         if(d<bestD){ bestD=d; best={ci,atVertex:false,segIndex:i,t,x:Math.round(a.x+(b.x-a.x)*t),y:Math.round(a.y+(b.y-a.y)*t)}; } } }
     return (best&&bestD<=14)?best:null;
   }
-  _scissorsClick(px,py){
-    const hit=this._nearestOnOutline(px,py);
+  _constrainedCut(px,py){
+    if(!this._cutA) return null;
+    const ci=this._cutA.ci; const c=this.contours[ci]; if(!c) return null;
+    const [asx,asy]=this.toScreen(this._cutA.x,this._cutA.y);
+    const vertical=Math.abs(py-asy)>=Math.abs(px-asx);
+    const line=vertical?this._cutA.x:this._cutA.y;
+    let best=null,bestD=Infinity; const n=c.length;
+    for(let i=0;i<n;i++){ const a=c[i], b=c[(i+1)%n];
+      const av=vertical?a.x:a.y, bv=vertical?b.x:b.y; const dv=bv-av; if(Math.abs(dv)<1e-9) continue;
+      const t=(line-av)/dv; if(t<0||t>1) continue;
+      const x=vertical?line:Math.round(a.x+(b.x-a.x)*t); const y=vertical?Math.round(a.y+(b.y-a.y)*t):line;
+      if(Math.abs(x-this._cutA.x)<0.5 && Math.abs(y-this._cutA.y)<0.5) continue;
+      const [sx,sy]=this.toScreen(x,y); const d=Math.hypot(sx-px,sy-py);
+      if(d<bestD){ bestD=d; best={ci,atVertex:false,segIndex:i,t,x,y}; } }
+    return best;
+  }
+  _scissorsClick(px,py,shift){
+    const hit=(shift&&this._cutA)?(this._constrainedCut(px,py)||this._nearestOnOutline(px,py)):this._nearestOnOutline(px,py);
     if(!hit) return;
-    if(!this._cutA){ this._cutA=hit; this._cutCursor=[px,py]; this.draw(); return; }
+    if(!this._cutA){ this._cutA=hit; this._cutCursor=[px,py]; this._cutSnap=null; this.draw(); return; }
     if(hit.ci!==this._cutA.ci){ this.app.banner("targetBanner","warn","はさみ：同じ輪郭の上で2点を指定してください。"); this._cutA=null; this._cutCursor=null; this.draw(); return; }
     this.app.historyBegin();
     const ok=this._performScissors(this._cutA,hit);
@@ -1611,6 +1753,7 @@ class Editor{
     const [ax,ay]=this.toScreen(this._cutA.x,this._cutA.y);
     if(this._cutCursor){ ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle="#f2665a"; ctx.lineWidth=1.4;
       ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(this._cutCursor[0],this._cutCursor[1]); ctx.stroke(); ctx.restore(); }
+    if(this._cutSnap&&this._cutCursor){ ctx.beginPath(); ctx.arc(this._cutCursor[0],this._cutCursor[1],5,0,Math.PI*2); ctx.fillStyle="#f2b657"; ctx.fill(); ctx.strokeStyle="#0d1017"; ctx.lineWidth=1.5; ctx.stroke(); }
     ctx.beginPath(); ctx.arc(ax,ay,5,0,Math.PI*2); ctx.fillStyle="#f2665a"; ctx.fill(); ctx.strokeStyle="#0d1017"; ctx.lineWidth=1.5; ctx.stroke();
   }
   toggleCurvePoint(){ const refs=this._selRefs(); if(!refs.length) return; this.app.historyBegin(); for(const r of refs) r.p.on=!r.p.on; this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("curve"); this.draw(); }
@@ -1654,6 +1797,47 @@ class Editor{
     const byC=new Map(); for(const r of this._selRefs()){ if(!byC.has(r.ci)) byC.set(r.ci,[]); byC.get(r.ci).push(r.pi); }
     const out=[]; for(const [ci,pis] of byC){ pis.sort((a,b)=>a-b); if(pis.length>=2) out.push(pis.map(pi=>({x:this.contours[ci][pi].x,y:this.contours[ci][pi].y,on:this.contours[ci][pi].on}))); }
     return out;
+  }
+  _fullSelContours(){
+    const out=[];
+    for(let ci=0;ci<this.contours.length;ci++){ const c=this.contours[ci]; if(!c.length) continue;
+      let all=true; for(let pi=0;pi<c.length;pi++){ if(!this.selPoints.has(this._key(ci,pi))){ all=false; break; } }
+      if(all) out.push(ci); }
+    return out;
+  }
+  unionSelected(){
+    const cis=this._fullSelContours();
+    if(cis.length<2){ this.app.banner("targetBanner","warn","合体：重ねた図形を2つ以上まるごと選択してください（範囲選択、または内側をShift+クリックで追加）。"); return; }
+    const loops=polyUnionRich(cis.map(ci=>this.contours[ci]),12);
+    if(!loops.length){ this.app.banner("targetBanner","warn","合体：統合できませんでした。図形が重なっているかご確認ください。"); return; }
+    const result=loops.map(l=>l.map(p=>({x:Math.round(p.x),y:Math.round(p.y),on:p.on!==false}))).filter(c=>c.length>=3);
+    if(!result.length){ this.app.banner("targetBanner","warn","合体：統合できませんでした。"); return; }
+    this.app.historyBegin();
+    const keep=this.contours.filter((_,ci)=>!cis.includes(ci));
+    const start=keep.length; this.contours=keep.concat(result);
+    this.selPoints.clear(); for(let i=0;i<result.length;i++){ const ci=start+i; this.contours[ci].forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))); }
+    this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("union");
+    this.app.banner("targetBanner","ok","合体：アウトラインを1つに統合しました。"); this.draw(); this.app.syncPanels();
+  }
+  _fhStart(px,py){ this.canvas.setPointerCapture&&this.canvas.setPointerCapture(0); this._fh=[[px,py]]; this.mode="freehand"; this.draw(); }
+  _fhMove(px,py){ if(!this._fh) return; const last=this._fh[this._fh.length-1]; if(Math.hypot(px-last[0],py-last[1])>=2){ this._fh.push([px,py]); this.draw(); } }
+  _fhEnd(){
+    const pts=this._fh||[]; this._fh=null; this.mode="none";
+    if(pts.length<3){ this.draw(); return; }
+    const fpts=pts.map(a=>{ const [fx,fy]=this.toFont(a[0],a[1]); return {x:fx,y:fy}; });
+    const simp=simplifyClosed(fpts,this.upm*0.004);
+    if(simp.length<3){ this.draw(); return; }
+    const contour=simp.map(p=>({x:Math.round(p.x),y:Math.round(p.y),on:true}));
+    this.app.historyBegin();
+    const start=this.contours.length; this.contours.push(contour);
+    this.selPoints.clear(); contour.forEach((_,pi)=>this.selPoints.add(this._key(start,pi)));
+    this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("freehand"); this.draw(); this.app.syncPanels();
+  }
+  _drawFreehand(){
+    if(!this._fh||this._fh.length<2) return; const ctx=this.ctx;
+    ctx.save(); ctx.strokeStyle="#37d6c3"; ctx.lineWidth=1.6; ctx.setLineDash([]); ctx.beginPath();
+    ctx.moveTo(this._fh[0][0],this._fh[0][1]); for(let i=1;i<this._fh.length;i++) ctx.lineTo(this._fh[i][0],this._fh[i][1]);
+    ctx.stroke(); ctx.restore();
   }
   pasteContours(cs){
     if(!cs||!cs.length) return; this.app.historyBegin();
@@ -1733,6 +1917,7 @@ class App{
     this.$("toolAddCorner").onclick=()=>this.setTool("addcorner");
     this.$("toolAddCurve").onclick=()=>this.setTool("addcurve");
     this.$("toolScissors").onclick=()=>this.setTool("scissors");
+    this.$("toolFreehand").onclick=()=>this.setTool("freehand");
     this.$("toolPan").onclick=()=>this.setTool("pan");
     this.$("partsBtn").onclick=()=>this.openParts();
     this.$("partsClose").onclick=()=>this.$("partsOverlay").classList.remove("show");
@@ -1746,6 +1931,7 @@ class App{
     this.$("btnDup").onclick=()=>this.editor.duplicate();
     this.$("btnFlipH").onclick=()=>this.editor.flip(true);
     this.$("btnFlipV").onclick=()=>this.editor.flip(false);
+    this.$("btnUnion").onclick=()=>this.editor.unionSelected();
     this.$("btnCopy").onclick=()=>this.copySelection();
     this.$("btnPaste").onclick=()=>this.paste();
     this.$("helpBtn").onclick=()=>{ this.switchHelpTab("use"); this.$("helpOverlay").classList.add("show"); };
@@ -1860,6 +2046,7 @@ class App{
     else if(e.key==="a"||e.key==="A"){ this.setTool("addcorner"); }
     else if(e.key==="s"||e.key==="S"){ this.setTool("addcurve"); }
     else if(e.key==="k"||e.key==="K"){ this.setTool("scissors"); }
+    else if(e.key==="p"||e.key==="P"){ this.setTool("freehand"); }
     else if(e.key==="c"||e.key==="C"){ this.editor.toggleCurvePoint(); }
     else if(e.key==="["){ this.editor.rotateBy(e.shiftKey?15:1); }
     else if(e.key==="]"){ this.editor.rotateBy(e.shiftKey?-15:-1); }
@@ -1868,7 +2055,7 @@ class App{
     this.editor.tool=t;
     this.editor._cutA=null; this.editor._cutCursor=null;
     if(t==="transform" && !this.editor.hasSelection() && this.editor.contours.length) this.editor.selectAllPoints();
-    for(const [id,name] of [["toolSelect","select"],["toolTransform","transform"],["toolRotate","rotate"],["toolAddCorner","addcorner"],["toolAddCurve","addcurve"],["toolScissors","scissors"],["toolPan","pan"]])
+    for(const [id,name] of [["toolSelect","select"],["toolTransform","transform"],["toolRotate","rotate"],["toolAddCorner","addcorner"],["toolAddCurve","addcurve"],["toolScissors","scissors"],["toolFreehand","freehand"],["toolPan","pan"]])
       this.$(id).classList.toggle("on",t===name);
     this.editor.draw();
   }
@@ -2130,6 +2317,7 @@ class App{
     const hasGlyph=this.targetGid>=0 && !!this.editor.upm;
     const hasSel=hasGlyph && this.editor.hasSelection();
     for(const id of ["btnDelPts","btnToggleCurve","btnCopy","btnDup","btnFlipH","btnFlipV"]) this.$(id).disabled=!hasSel;
+    this.$("btnUnion").disabled = !hasGlyph || this.editor._fullSelContours().length<2;
     this.$("btnPaste").disabled=!(hasGlyph && this.clipboard && this.clipboard.length);
     this.editor._hud();
   }
@@ -2600,7 +2788,49 @@ document.addEventListener("DOMContentLoaded",()=>{
   const app=new App();
   window.__kyuji=app;
   setTimeout(()=>app.editor.resize(),50);
+  initTipChip();
 });
+
+function initTipChip(){
+  const chip=document.getElementById("tipChip"); if(!chip) return;
+  const TIPS={
+    toolSelect:"<b>選択・移動</b> (<span class='k'>V</span>)　点/辺/内側をクリック、空きをドラッグで範囲選択。ドラッグ中に Shift で水平/垂直/45°に拘束。",
+    toolTransform:"<b>自由変形</b> (<span class='k'>T</span>)　枠のハンドルで拡大縮小。角=縦横同時、辺=片方向、Shiftで等比。",
+    toolRotate:"<b>回転</b> (<span class='k'>R</span>)　ドラッグで回転。Shiftで45°ずつ。[ ] キーで1°（Shiftで15°）。",
+    toolAddCorner:"<b>角点を追加</b> (<span class='k'>A</span>)　輪郭線上をクリックして角（直線）点を挿入。",
+    toolAddCurve:"<b>曲線点を追加</b> (<span class='k'>S</span>)　輪郭線上をクリックして曲線点を挿入。",
+    toolScissors:"<b>はさみ</b> (<span class='k'>K</span>)　輪郭上の2点をクリックで分割。1点目の後に Shift で水平/垂直に吸着。",
+    toolFreehand:"<b>フリーハンド</b> (<span class='k'>P</span>)　ドラッグで輪郭を描き、離すと閉じた図形になります。",
+    toolPan:"<b>画面移動</b> (<span class='k'>Space</span>)　ドラッグで表示位置を移動。ホイールで拡大縮小。",
+    btnUndo:"<b>元に戻す</b> (<span class='k'>Ctrl+Z</span>)",
+    btnRedo:"<b>やり直し</b> (<span class='k'>Ctrl+Shift+Z</span>)",
+    btnDelPts:"<b>点を削除</b> (<span class='k'>Delete</span>)　選択中の点を削除。",
+    btnToggleCurve:"<b>直線 / 曲線</b> (<span class='k'>C</span>)　選択点を直線点と曲線点で切り替え。",
+    btnDup:"<b>複製</b>　選択した輪郭を少しずらして複製。",
+    btnFlipH:"<b>左右反転</b>　選択（なければ全体）を水平方向に反転。",
+    btnFlipV:"<b>上下反転</b>　選択（なければ全体）を垂直方向に反転。",
+    btnUnion:"<b>合体</b>　重ねた2つ以上の図形をアウトライン統合して1つにします。切断されない辺の曲線は保持。",
+    btnCopy:"<b>コピー</b> (<span class='k'>Ctrl+C</span>)　選択した点を輪郭として切り抜きコピー。",
+    btnPaste:"<b>貼付</b> (<span class='k'>Ctrl+V</span>)　コピーした輪郭を貼り付け。",
+    btnFit:"<b>全体表示</b> (<span class='k'>F</span>)　文字全体が収まるように表示。",
+    btnGuide:"<b>元字形ガイド</b>　編集前の輪郭を薄く重ねて表示。"
+  };
+  const show=btn=>{ const t=TIPS[btn.id]||btn.getAttribute("title")||""; if(!t) return;
+    btn._savedTitle=btn.getAttribute("title"); if(btn._savedTitle!=null) btn.removeAttribute("title");
+    chip.innerHTML=t; chip.style.display="block"; };
+  const move=e=>{ if(chip.style.display!=="block") return; const pad=12; const r=chip.getBoundingClientRect();
+    let x=e.clientX+16, y=e.clientY+18;
+    if(x+r.width+pad>window.innerWidth) x=e.clientX-r.width-16;
+    if(y+r.height+pad>window.innerHeight) y=e.clientY-r.height-18;
+    chip.style.left=Math.max(pad,x)+"px"; chip.style.top=Math.max(pad,y)+"px"; };
+  const hide=btn=>{ chip.style.display="none"; if(btn._savedTitle!=null){ btn.setAttribute("title",btn._savedTitle); btn._savedTitle=null; } };
+  document.querySelectorAll(".tbtn").forEach(btn=>{
+    btn.addEventListener("mouseenter",()=>show(btn));
+    btn.addEventListener("mousemove",move);
+    btn.addEventListener("mouseleave",()=>hide(btn));
+  });
+}
 </script>
+<div id="tipChip"></div>
 </body>
 </html>
