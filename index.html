@@ -1285,6 +1285,10 @@ function flattenEdge(A,B,ctrl,steps){
   for(let s=1;s<=steps;s++){ const t=s/steps, mt=1-t; out.push({x:mt*mt*A.x+2*mt*t*ctrl.x+t*t*B.x, y:mt*mt*A.y+2*mt*t*ctrl.y+t*t*B.y}); }
   return out;
 }
+function quadSubControl(P0,P1,P2,t0,t1){
+  const b=(u,v)=>({x:(1-u)*(1-v)*P0.x+((1-u)*v+u*(1-v))*P1.x+u*v*P2.x, y:(1-u)*(1-v)*P0.y+((1-u)*v+u*(1-v))*P1.y+u*v*P2.y});
+  return {P0:b(t0,t0), C:b(t0,t1), P2:b(t1,t1)};
+}
 function simplifyClosed(pts,tol){
   if(pts.length<=3) return pts.slice();
   const segDist=(p,a,b)=>{ const vx=b.x-a.x, vy=b.y-a.y; const l2=vx*vx+vy*vy||1e-9;
@@ -1306,8 +1310,8 @@ function polyUnionRich(contours, steps){
   for(const p of polys) for(const v of p){ if(v.x<minx)minx=v.x; if(v.x>maxx)maxx=v.x; if(v.y<miny)miny=v.y; if(v.y>maxy)maxy=v.y; }
   const diag=Math.hypot(maxx-minx,maxy-miny)||1; const EPS=diag*1e-7, OFF=diag*1e-4;
   const edges=[];
-  for(let gid=0; gid<G.length; gid++){ const s=G[gid].samples;
-    for(let i=0;i<s.length-1;i++){ const a=s[i],b=s[i+1]; if(Math.hypot(b.x-a.x,b.y-a.y)>EPS) edges.push({ax:a.x,ay:a.y,bx:b.x,by:b.y,gid,K:G[gid].K}); } }
+  for(let gid=0; gid<G.length; gid++){ const s=G[gid].samples; const K=G[gid].K;
+    for(let i=0;i<s.length-1;i++){ const a=s[i],b=s[i+1]; if(Math.hypot(b.x-a.x,b.y-a.y)>EPS) edges.push({ax:a.x,ay:a.y,bx:b.x,by:b.y,gid,K,p0:i/K,p1:(i+1)/K}); } }
   const segInt=(e,f)=>{ const r={x:e.bx-e.ax,y:e.by-e.ay}, ss={x:f.bx-f.ax,y:f.by-f.ay};
     const den=r.x*ss.y-r.y*ss.x; const out=[]; const qp={x:f.ax-e.ax,y:f.ay-e.ay};
     if(Math.abs(den)>1e-12){ const t=(qp.x*ss.y-qp.y*ss.x)/den, u=(qp.x*r.y-qp.y*r.x)/den; if(t>-1e-9&&t<1+1e-9&&u>-1e-9&&u<1+1e-9) out.push(t); }
@@ -1318,7 +1322,7 @@ function polyUnionRich(contours, steps){
     for(let j=0;j<edges.length;j++){ if(i===j) continue; for(const t of segInt(e,edges[j])) ts.push(t); }
     ts.sort((a,b)=>a-b); const cut=ts.some(t=>t>1e-6 && t<1-1e-6);
     for(let k=0;k+1<ts.length;k++){ const t0=ts[k], t1=ts[k+1]; if(t1-t0<1e-9) continue;
-      subs.push({ax:e.ax+(e.bx-e.ax)*t0, ay:e.ay+(e.by-e.ay)*t0, bx:e.ax+(e.bx-e.ax)*t1, by:e.ay+(e.by-e.ay)*t1, gid:e.gid, K:e.K, whole:(t0===0&&t1===1&&!cut)}); } }
+      subs.push({ax:e.ax+(e.bx-e.ax)*t0, ay:e.ay+(e.by-e.ay)*t0, bx:e.ax+(e.bx-e.ax)*t1, by:e.ay+(e.by-e.ay)*t1, gid:e.gid, K:e.K, whole:(t0===0&&t1===1&&!cut), pa:e.p0+(e.p1-e.p0)*t0, pb:e.p0+(e.p1-e.p0)*t1}); } }
   const insideAny=(x,y)=>{ for(const p of polys){ let c=false; const n=p.length; for(let i=0,j=n-1;i<n;j=i++){ const a=p[i], b=p[j];
         if(((a.y>y)!==(b.y>y)) && (x<(b.x-a.x)*(y-a.y)/((b.y-a.y)||1e-12)+a.x)) c=!c; } if(c) return true; } return false; };
   const kept=[];
@@ -1326,7 +1330,7 @@ function polyUnionRich(contours, steps){
     let nx=-(sg.by-sg.ay), ny=(sg.bx-sg.ax); const L=Math.hypot(nx,ny)||1; nx/=L; ny/=L;
     const inL=insideAny(mx+nx*OFF,my+ny*OFF), inR=insideAny(mx-nx*OFF,my-ny*OFF);
     if(inL===inR) continue;
-    if(inL) kept.push({...sg}); else kept.push({ax:sg.bx,ay:sg.by,bx:sg.ax,by:sg.ay,gid:sg.gid,K:sg.K,whole:sg.whole,rev:true}); }
+    if(inL) kept.push({...sg}); else kept.push({ax:sg.bx,ay:sg.by,bx:sg.ax,by:sg.ay,gid:sg.gid,K:sg.K,whole:sg.whole,pa:sg.pa,pb:sg.pb,rev:true}); }
   const key=(x,y)=>Math.round(x/EPS)+","+Math.round(y/EPS);
   const outMap=new Map(); for(const e of kept){ const k=key(e.ax,e.ay); if(!outMap.has(k)) outMap.set(k,[]); outMap.get(k).push(e); }
   const used=new Set(); const ang=e=>Math.atan2(e.by-e.ay,e.bx-e.ax); const rawLoops=[];
@@ -1347,6 +1351,14 @@ function polyUnionRich(contours, steps){
       const intact = run.length===g.K && run.every(x=>x.whole); const rev=run[0].rev;
       if(intact && g.ctrl){ const A0=rev?g.B:g.A; nodes.push({x:A0.x,y:A0.y,on:true}); nodes.push({x:g.ctrl.x,y:g.ctrl.y,on:false}); }
       else if(intact){ const A0=rev?g.B:g.A; nodes.push({x:A0.x,y:A0.y,on:true}); }
+      else if(g.ctrl){
+        const sorted=run.slice().sort((a,b)=>a.pa-b.pa); let contiguous=true;
+        for(let q=0;q+1<sorted.length;q++){ if(sorted[q+1].pa-sorted[q].pb>1e-4){ contiguous=false; break; } }
+        let ta=Infinity,tb=-Infinity; for(const x of run){ if(x.pa<ta)ta=x.pa; if(x.pb>tb)tb=x.pb; }
+        if(contiguous && tb-ta>1e-6){ const sub=quadSubControl(g.A,g.ctrl,g.B,ta,tb);
+          nodes.push({x:run[0].ax,y:run[0].ay,on:true}); nodes.push({x:sub.C.x,y:sub.C.y,on:false}); }
+        else { for(let r=0;r<run.length;r++) nodes.push({x:run[r].ax,y:run[r].ay,on:true}); }
+      }
       else { for(let r=0;r<run.length;r++) nodes.push({x:run[r].ax,y:run[r].ay,on:true}); }
       i=j; }
     if(nodes.length>=3) loops.push(nodes); }
@@ -1572,13 +1584,16 @@ class Editor{
     const he=this._hitEdge(px,py);
     if(he){
       const n=this.contours[he.ci].length; const k1=this._key(he.ci,he.i), k2=this._key(he.ci,(he.i+1)%n);
-      if(!e.shiftKey) this.selPoints.clear(); this.selPoints.add(k1); this.selPoints.add(k2);
+      const already=this.selPoints.has(k1) && this.selPoints.has(k2);
+      if(e.shiftKey){ this.selPoints.add(k1); this.selPoints.add(k2); }
+      else if(!already){ this.selPoints.clear(); this.selPoints.add(k1); this.selPoints.add(k2); }
       this._beginMove(); return;
     }
     const ci=this._hitContourInside(px,py);
     if(ci!==-1){
-      if(!e.shiftKey) this.selPoints.clear();
-      this.contours[ci].forEach((_,pi)=>this.selPoints.add(this._key(ci,pi)));
+      const already=this.contours[ci].every((_,pi)=>this.selPoints.has(this._key(ci,pi)));
+      if(e.shiftKey){ this.contours[ci].forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))); }
+      else if(!already){ this.selPoints.clear(); this.contours[ci].forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))); }
       this._beginMove(); return;
     }
     this._marqueeBase = e.shiftKey ? new Set(this.selPoints) : new Set();
@@ -1777,13 +1792,17 @@ class Editor{
   }
   flip(horizontal){
     const refs=this._workingRefs(); if(!refs.length) return;
+    const hadSel=this.selPoints.size>0;
+    const byC=new Map(); for(const r of refs){ if(!byC.has(r.ci)) byC.set(r.ci,new Set()); byC.get(r.ci).add(r.pi); }
     let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity; for(const r of refs){ x0=Math.min(x0,r.p.x); y0=Math.min(y0,r.p.y); x1=Math.max(x1,r.p.x); y1=Math.max(y1,r.p.y); }
     this.app.historyBegin();
     for(const r of refs){ if(horizontal) r.p.x=x0+x1-r.p.x; else r.p.y=y0+y1-r.p.y; }
-    const cnt=new Map(); for(const r of refs){ cnt.set(r.ci,(cnt.get(r.ci)||0)+1); }
-    for(const [ci,c] of cnt){ if(c===this.contours[ci].length) this.contours[ci].reverse(); }
-    this.selPoints=new Set(); this.contours.forEach((c,ci)=>c.forEach((_,pi)=>this.selPoints.add(this._key(ci,pi))));
-    this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("flip"); this.draw();
+    const newSel=new Set();
+    for(const [ci,pis] of byC){ const nn=this.contours[ci].length;
+      if(pis.size===nn){ this.contours[ci].reverse(); for(let pi=0;pi<nn;pi++) newSel.add(this._key(ci,pi)); }
+      else { for(const pi of pis) newSel.add(this._key(ci,pi)); } }
+    this.selPoints = hadSel ? newSel : new Set();
+    this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("flip"); this.draw(); this.app.syncPanels();
   }
   rotateBy(deg){
     const refs=this._workingRefs(); if(!refs.length) return;
@@ -1819,7 +1838,7 @@ class Editor{
     this.roundLive(); this.app.markManual(); this.app.commitTarget(); this.app.historyEnd("union");
     this.app.banner("targetBanner","ok","合体：アウトラインを1つに統合しました。"); this.draw(); this.app.syncPanels();
   }
-  _fhStart(px,py){ this.canvas.setPointerCapture&&this.canvas.setPointerCapture(0); this._fh=[[px,py]]; this.mode="freehand"; this.draw(); }
+  _fhStart(px,py){ this._fh=[[px,py]]; this.mode="freehand"; this.draw(); }
   _fhMove(px,py){ if(!this._fh) return; const last=this._fh[this._fh.length-1]; if(Math.hypot(px-last[0],py-last[1])>=2){ this._fh.push([px,py]); this.draw(); } }
   _fhEnd(){
     const pts=this._fh||[]; this._fh=null; this.mode="none";
